@@ -815,9 +815,6 @@ To make things worse, this hellhole is entirely RNG, so good luck mapping it!
 		randy.hidden = FALSE
 		generated += randy
 		SSstar_system.systems += randy
-/*		if(I <= 0) //First system always needs to join to the entry point.
-			adjacency_list += randy.name
-			randy.adjacency_list += name*/
 	}
 	var/lowest_dist = 1000
 	//Finally, let's play this drunken game of connect the dots.
@@ -858,21 +855,17 @@ To make things worse, this hellhole is entirely RNG, so good luck mapping it!
 			if(!closest || mindist > thisdist)
 				closest = systems.Find(S)
 				mindist = thisdist //This is always the source node (rubiconnector) in the first run
-		message_admins("Closest is [closest] aka [systems[closest]] with a distance of [mindist]")
 		generated -= systems[closest]	//Remove it from the list.
 
 		for(var/datum/star_system/S in generated)	//Try relaxing all other systems still in the list via it.
 			var/alternative = distances[closest] + systems[closest].dist(S)
 			var/adj = systems.Find(S)
-			//message_admins("Checking [S], distance of [distances[adj]] vs relaxed distance of [alternative]")
 			if(alternative < distances[adj] * NONRELAXATION_PENALTY)
-				//message_admins("Relaxing [adj], distance of [distances[adj]] (effectively: [distances[adj] * NONRELAXATION_PENALTY]) versus relaxation of [alternative]")
 				distances[adj] = alternative
 				parents[adj] = systems[closest]
 				relax++
-	message_admins("Generated is: [generated], len of [generated.len]")
 
-	//Dijkstra: Done. We got the parents for everyone, time to actually stitch them together.
+	//Dijkstra: Done. We got parents for everyone, time to actually stitch them together.
 	for(var/i = 1; i <= systems.len; i++)
 		var/datum/star_system/S = systems[i]
 		if(S == rubiconnector)
@@ -892,29 +885,10 @@ To make things worse, this hellhole is entirely RNG, so good luck mapping it!
 				S.adjacency_list += partner.name
 
 	//There we go.
-
-
-/*	for(var/datum/star_system/S in generated)
-		if(rubicon && S.dist(rubicon) < lowest_dist)
-			lowest_dist = S.dist(rubicon)
-			rubiconnector = S
-		try_again:
-		var/datum/star_system/partner = pick(generated)
-		if(partner && partner == S)
-			goto try_again
-		partner.adjacency_list += S.name
-		S.adjacency_list += partner.name
-
-	//And here's your path to rubicon. Have fun with that :)
-	rubiconnector.adjacency_list += rubicon.name
-	rubicon.adjacency_list += rubiconnector.name
-	if(rubiconnector.adjacency_list.len <= 1) //There's no valid way to get to the rubiconnector.
-		var/datum/star_system/partner = pick(generated)
-		rubiconnector.adjacency_list += partner.name
-		partner.adjacency_list += rubiconnector*/
 	message_admins("Brazil has been completed. There were [conflictcount] conflicts during generation. Fun fact, jump lanes have been relaxed [relax] times by the algorithm!")
 
 #undef NONRELAXATION_PENALTY
+
 /*
 <Summary>
 Welcome to the endgame. This sector is the hardest you'll encounter in game and holds the Syndicate capital.
