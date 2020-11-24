@@ -785,7 +785,7 @@ To make things worse, this hellhole is entirely RNG, so good luck mapping it!
 	. = ..()
 	addtimer(CALLBACK(src, .proc/generate_badlands), 10 SECONDS)
 
-#define NONRELAXATION_PENALTY 1.2 //Encourages the badlands generator to use jump line relaxation even if a^2 + b^2 = c^2 - Set this higher if you want Brazil's jumplines to be more direct, high values might be very wacky. 1.0 or lower will give all of the systems a direct jumpline to rubiconnector.
+#define NONRELAXATION_PENALTY 1.2 //Encourages the badlands generator to use jump line relaxation even if a^2 + b^2 = c^2 - Set this lower if you want Brazil's jumplines to be more direct, high values might be very wacky. 1.0 will give all of the systems a direct jumpline to rubiconnector. Values below 1 might be very wacky.
 
 /datum/star_system/sector3/proc/generate_badlands()
 	//These are necessary to ensure no three points are perfectly collinear, for the most part.
@@ -834,11 +834,13 @@ To make things worse, this hellhole is entirely RNG, so good luck mapping it!
 			rubiconnector = S
 	rubiconnector.adjacency_list += rubicon.name
 	rubicon.adjacency_list += rubiconnector.name
+
 	//We did it, we connected Rubicon. Now for the fun part: Connecting all of the systems, in a not-as-bad way. We'll use a tree for this, and then add some random connections to make it not as linear.
 	generated += src //We want to get to rubicon from here!
+	var/relax = 0	//Just a nice stat var
 	var/systems[generated.len]
 	var/distances[generated.len]
-	var/parents[generated.len]	//This is what we will have ALOT of use for later
+	var/parents[generated.len]	//This is what we will use later
 	for(var/i = 1; i <= generated.len; i++)
 		systems[i] = generated[i]
 		parents[i] = rubiconnector
@@ -846,6 +848,7 @@ To make things worse, this hellhole is entirely RNG, so good luck mapping it!
 			distances[i] = INFINITY
 		else
 			distances[i] = 0
+
 	//Setup: Done. Dijkstra time.
 	while(generated.len > 0) //we have to go through this n times
 		var/closest = null
@@ -866,7 +869,9 @@ To make things worse, this hellhole is entirely RNG, so good luck mapping it!
 				//message_admins("Relaxing [adj], distance of [distances[adj]] (effectively: [distances[adj] * NONRELAXATION_PENALTY]) versus relaxation of [alternative]")
 				distances[adj] = alternative
 				parents[adj] = systems[closest]
+				relax++
 	message_admins("Generated is: [generated], len of [generated.len]")
+
 	//Dijkstra: Done. We got the parents for everyone, time to actually stitch them together.
 	for(var/i = 1; i <= systems.len; i++)
 		var/datum/star_system/S = systems[i]
@@ -875,14 +880,12 @@ To make things worse, this hellhole is entirely RNG, so good luck mapping it!
 		var/datum/star_system/Connected = parents[i]
 		S.adjacency_list += Connected.name
 		Connected.adjacency_list += S.name
+
 	//We got a nice tree! But this is looking far too clean, time to Brazilify this.
 	for(var/datum/star_system/S in systems)
 		var/bonus = 0
-		while(!prob(66 + (bonus * 20))) //Lets not flood the map with jumplanes, buuut create a good chunk of them
-			try_again:
-			var/datum/star_system/partner = pick(systems)
-			if(partner && partner == S)
-				goto try_again	//I despise gotos with my entire heart, but in this case it's actually useful.
+		while(!prob(60 + (bonus * 20))) //Lets not flood the map with jumplanes, buuut create a good chunk of them
+			var/datum/star_system/partner = pick(systems - S)
 			bonus++
 			if(!S.adjacency_list.Find(partner.name)) //If we are already connected, we don't write ourselves into the connections, but don't count it as fail
 				partner.adjacency_list += S.name
@@ -909,7 +912,7 @@ To make things worse, this hellhole is entirely RNG, so good luck mapping it!
 		var/datum/star_system/partner = pick(generated)
 		rubiconnector.adjacency_list += partner.name
 		partner.adjacency_list += rubiconnector*/
-	message_admins("Brazil has been completed. There were [conflictcount] conflicts during generation.")
+	message_admins("Brazil has been completed. There were [conflictcount] conflicts during generation. Fun fact, jump lanes have been relaxed [relax] times by the algorithm!")
 
 #undef NONRELAXATION_PENALTY
 /*
