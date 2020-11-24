@@ -785,6 +785,8 @@ To make things worse, this hellhole is entirely RNG, so good luck mapping it!
 	. = ..()
 	addtimer(CALLBACK(src, .proc/generate_badlands), 10 SECONDS)
 
+#define NONRELAXATION_PENALTY 1.2 //Encourages the badlands generator to use jump line relaxation even if a^2 + b^2 = c^2 - Set this higher if you want Brazil's jumplines to be more direct, high values might be very wacky. 1.0 or lower will give all of the systems a direct jumpline to rubiconnector.
+
 /datum/star_system/sector3/proc/generate_badlands()
 	//These are necessary to ensure no three points are perfectly collinear, for the most part.
 	var/list/used_y = list()
@@ -813,15 +815,83 @@ To make things worse, this hellhole is entirely RNG, so good luck mapping it!
 		randy.hidden = FALSE
 		generated += randy
 		SSstar_system.systems += randy
-		if(I <= 0) //First system always needs to join to the entry point.
+/*		if(I <= 0) //First system always needs to join to the entry point.
 			adjacency_list += randy.name
-			randy.adjacency_list += name
+			randy.adjacency_list += name*/
 	}
 	var/lowest_dist = 1000
 	//Finally, let's play this drunken game of connect the dots.
 	var/datum/star_system/rubicon = SSstar_system.system_by_id("Rubicon")
 	var/datum/star_system/rubiconnector = null
+	//First, we use the system closest to rubicon as a connector to it
+	if(!rubicon)
+		message_admins("Error setting up Brazil - No Rubicon found!") //This should never happen unless admins do bad things.
+		return
+
 	for(var/datum/star_system/S in generated)
+		if(S.dist(rubicon) < lowest_dist)
+			lowest_dist = S.dist(rubicon)
+			rubiconnector = S
+	rubiconnector.adjacency_list += rubicon.name
+	rubicon.adjacency_list += rubiconnector.name
+	//We did it, we connected Rubicon. Now for the fun part: Connecting all of the systems, in a not-as-bad way. We'll use a tree for this, and then add some random connections to make it not as linear.
+	generated += src //We want to get to rubicon from here!
+	var/systems[generated.len]
+	var/distances[generated.len]
+	var/parents[generated.len]	//This is what we will have ALOT of use for later
+	for(var/i = 1; i <= generated.len; i++)
+		systems[i] = generated[i]
+		parents[i] = rubiconnector
+		if(generated[i] != rubiconnector)
+			distances[i] = INFINITY
+		else
+			distances[i] = 0
+	//Setup: Done. Dijkstra time.
+	while(generated.len > 0) //we have to go through this n times
+		var/closest = null
+		var/mindist = INFINITY
+		for(var/datum/star_system/S in generated)	//Find the system with the smallest value in distances[].
+			var/thisdist = distances[systems.Find(S)]
+			if(!closest || mindist > thisdist)
+				closest = systems.Find(S)
+				mindist = thisdist //This is always the source node (rubiconnector) in the first run
+		message_admins("Closest is [closest] aka [systems[closest]] with a distance of [mindist]")
+		generated -= systems[closest]	//Remove it from the list.
+
+		for(var/datum/star_system/S in generated)	//Try relaxing all other systems still in the list via it.
+			var/alternative = distances[closest] + systems[closest].dist(S)
+			var/adj = systems.Find(S)
+			//message_admins("Checking [S], distance of [distances[adj]] vs relaxed distance of [alternative]")
+			if(alternative < distances[adj] * NONRELAXATION_PENALTY)
+				//message_admins("Relaxing [adj], distance of [distances[adj]] (effectively: [distances[adj] * NONRELAXATION_PENALTY]) versus relaxation of [alternative]")
+				distances[adj] = alternative
+				parents[adj] = systems[closest]
+	message_admins("Generated is: [generated], len of [generated.len]")
+	//Dijkstra: Done. We got the parents for everyone, time to actually stitch them together.
+	for(var/i = 1; i <= systems.len; i++)
+		var/datum/star_system/S = systems[i]
+		if(S == rubiconnector)
+			continue	//Rubiconnector is the home node and would fuck with us if we did stuff with it here.
+		var/datum/star_system/Connected = parents[i]
+		S.adjacency_list += Connected.name
+		Connected.adjacency_list += S.name
+	//We got a nice tree! But this is looking far too clean, time to Brazilify this.
+	for(var/datum/star_system/S in systems)
+		var/bonus = 0
+		while(!prob(66 + (bonus * 20))) //Lets not flood the map with jumplanes, buuut create a good chunk of them
+			try_again:
+			var/datum/star_system/partner = pick(systems)
+			if(partner && partner == S)
+				goto try_again	//I despise gotos with my entire heart, but in this case it's actually useful.
+			bonus++
+			if(!S.adjacency_list.Find(partner.name)) //If we are already connected, we don't write ourselves into the connections, but don't count it as fail
+				partner.adjacency_list += S.name
+				S.adjacency_list += partner.name
+
+	//There we go.
+
+
+/*	for(var/datum/star_system/S in generated)
 		if(rubicon && S.dist(rubicon) < lowest_dist)
 			lowest_dist = S.dist(rubicon)
 			rubiconnector = S
@@ -838,8 +908,10 @@ To make things worse, this hellhole is entirely RNG, so good luck mapping it!
 	if(rubiconnector.adjacency_list.len <= 1) //There's no valid way to get to the rubiconnector.
 		var/datum/star_system/partner = pick(generated)
 		rubiconnector.adjacency_list += partner.name
-		partner.adjacency_list += rubiconnector
+		partner.adjacency_list += rubiconnector*/
 	message_admins("Brazil has been completed. There were [conflictcount] conflicts during generation.")
+
+#undef NONRELAXATION_PENALTY
 /*
 <Summary>
 Welcome to the endgame. This sector is the hardest you'll encounter in game and holds the Syndicate capital.
