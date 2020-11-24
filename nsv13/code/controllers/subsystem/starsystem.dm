@@ -877,7 +877,7 @@ To make things worse, this hellhole is entirely RNG, so good luck mapping it!
 	//We got a nice tree! But this is looking far too clean, time to Brazilify this.
 	for(var/datum/star_system/S in systems)
 		var/bonus = 0
-		while(!prob(60 + (bonus * 20))) //Lets not flood the map with jumplanes, buuut create a good chunk of them
+		while(!prob(60 + (bonus * 20))) //Lets not flood the map with random jumplanes, buuut create a good chunk of them
 			var/datum/star_system/partner = pick(systems - S)
 			bonus++
 			if(!S.adjacency_list.Find(partner.name)) //If we are already connected, we don't write ourselves into the connections, but don't count it as fail
