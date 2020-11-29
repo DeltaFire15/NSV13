@@ -59,6 +59,8 @@
 		. += "<span class='warning'>The system overload lights are flashing</span>"
 
 /obj/machinery/armour_plating_nanorepair_pump/process()
+	if(!OM)
+		OM = get_overmap()
 	if(online && is_operational() && !stress_shutdown)
 		idle_power_usage = 0 //reset power use
 		if(armour_allocation)
@@ -77,7 +79,7 @@
 			if(OM.obj_integrity < OM.max_integrity) //Structure Check
 				if(OM.structure_crit_no_return) //If we have crossed the point of no return, halt repairs
 					return
-				structure_repair_amount = (1 + (OM.mass / 10) * apnw.repair_efficiency * structure_allocation) / 100
+				structure_repair_amount = ((1 + (OM.mass / 10)) * apnw.repair_efficiency * structure_allocation) / 100
 				if(apnw.repair_resources >= (structure_repair_amount * OM.mass) * 2)
 					OM.obj_integrity += structure_repair_amount
 					if(OM.obj_integrity > OM.max_integrity)

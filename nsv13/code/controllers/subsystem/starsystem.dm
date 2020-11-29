@@ -9,6 +9,7 @@ SUBSYSTEM_DEF(star_system)
 	flags = SS_NO_INIT
 	var/last_combat_enter = 0 //Last time an AI controlled ship attacked the players
 	var/list/systems = list()
+	var/list/traders = list()
 	var/bounty_pool = 0 //Bounties pool to be delivered for destroying syndicate ships
 	var/list/enemy_types = list()
 	var/list/enemy_blacklist = list()
@@ -20,8 +21,19 @@ SUBSYSTEM_DEF(star_system)
 	var/nag_interval = 30 MINUTES //Get off your asses and do some work idiots
 	var/nag_stacks = 0 //How many times have we told you to get a move on?
 	var/list/all_missions = list()
+	var/admin_boarding_override = FALSE //Used by admins to force disable boarders
+	var/time_limit = FALSE //Do we want to end the round after a specific time? Mostly used for galconquest.
 
 /datum/controller/subsystem/star_system/fire() //Overmap combat events control system, adds weight to combat events over time spent out of combat
+	if(time_limit && world.time >= time_limit)
+		var/datum/faction/winner = get_winner()
+		if(istype(SSticker.mode, /datum/game_mode/pvp))
+			var/datum/game_mode/pvp/mode = SSticker.mode
+			mode.winner = winner //This should allow the mode to finish up by itself
+			mode.check_finished()
+		else
+			SSticker.force_ending = 1
+		return
 	if(SSmapping.config.patrol_type == "passive")
 		priority_announce("[station_name()], you have been assigned to reconnaissance and exploration this shift. Scans indicate that besides a decent number of straggling Syndicate vessels, there will be little threat to your operations. You are granted permission to proceed at your own pace.", "[capitalize(SSmapping.config.faction)] Naval Command")
 		for(var/datum/star_system/SS in systems)
@@ -57,6 +69,8 @@ SUBSYSTEM_DEF(star_system)
 				var/total_deductions
 				for(var/account in SSeconomy.department_accounts)
 					var/datum/bank_account/D = SSeconomy.get_dep_account(account)
+					if(account == ACCOUNT_SYN)
+						continue //No, just no.
 					total_deductions += D.account_balance / 2
 					D.account_balance /= 2
 			if(4 to INFINITY) //From this point on, you can actively lose the game.
@@ -111,6 +125,20 @@ Returns a faction datum by its name (case insensitive!)
 		var/datum/star_system/S = new instance
 		if(S.name)
 			systems += S
+
+/client/proc/cmd_admin_boarding_override()
+	set category = "Adminbus"
+	set name = "Toggle Antag Boarding Parties"
+
+	if(!check_rights(R_ADMIN))
+		return
+
+	if(SSstar_system.admin_boarding_override)
+		SSstar_system.admin_boarding_override = FALSE
+		message_admins("[key_name_admin(usr)] has ENABLED overmap antag boarding parties.")
+	else if(!SSstar_system.admin_boarding_override)
+		SSstar_system.admin_boarding_override = TRUE
+		message_admins("[key_name_admin(usr)] has DISABLED overmap antag boarding parties.")
 
 ///////SPAWN SYSTEM///////
 
@@ -189,6 +217,16 @@ Returns a faction datum by its name (case insensitive!)
 			F.victory()
 			return TRUE
 	return FALSE
+
+/datum/controller/subsystem/star_system/proc/get_winner()
+	var/highestTickets = 0
+	var/datum/faction/winner = null
+	for(var/X in factions)
+		var/datum/faction/F = X
+		if(F.tickets > highestTickets)
+			winner = F
+			highestTickets = F.tickets
+	return winner
 
 	/* Deprecated.
 	if(patrols_left <= 0 && systems_cleared >= initial(patrols_left))
@@ -311,7 +349,9 @@ Returns a faction datum by its name (case insensitive!)
 		trader = new preset_trader
 		//We need to instantiate the trader's shop now and give it info, so unfortunately these'll always load in.
 		var/obj/structure/overmap/trader/station13 = SSstar_system.spawn_anomaly(trader.station_type, src, TRUE)
+		station13.starting_system = name
 		station13.set_trader(trader)
+		trader.generate_missions()
 	addtimer(CALLBACK(src, .proc/spawn_asteroids), 15 SECONDS)
 	addtimer(CALLBACK(src, .proc/generate_anomaly), 15 SECONDS)
 
@@ -780,6 +820,7 @@ To make things worse, this hellhole is entirely RNG, so good luck mapping it!
 	x = 100
 	y = 30
 	sector = 3
+	adjacency_list = list("Tortuga")
 
 /datum/star_system/sector3/New()
 	. = ..()
@@ -788,32 +829,61 @@ To make things worse, this hellhole is entirely RNG, so good luck mapping it!
 #define NONRELAXATION_PENALTY 1.2 //Encourages the badlands generator to use jump line relaxation even if a^2 + b^2 = c^2 - Set this lower if you want Brazil's jumplines to be more direct, high values might be very wacky. 1.0 will give all of the systems a direct jumpline to rubiconnector. Values below 1 might be very wacky.
 
 /datum/star_system/sector3/proc/generate_badlands()
-	//These are necessary to ensure no three points are perfectly collinear, for the most part.
-	var/list/used_y = list()
-	var/list/used_x = list()
 
 	var/list/generated = list()
 	var/amount = rand(100, 200)
-	var/conflictcount = 0
+	var/toocloseconflict = 0
 	message_admins("Generating Brazil with [amount] systems.")
+	var/start_timeofday = REALTIMEOFDAY
 	for(var/I=0;I<amount,I++){
 		var/datum/star_system/random/randy = new /datum/star_system/random()
-		randy.system_type = pick("radioactive", "blackhole", "quasar", "accretiondisk", "nebula", "supernova")
+		randy.system_type = pick("radioactive", 0.5;"blackhole", "quasar", 0.75;"accretiondisk", "nebula", "supernova", "debris")
 		randy.apply_system_effects()
 		randy.name = (randy.system_type != "nebula") ? "S-[rand(0,10000)]" : "N-[rand(0,10000)]"
-		randy.x = rand(1, 200)
-		randy.y = rand(1, 100)+30 //Offset vertically for viewing 'pleasure'
-		while(randy.x in used_x)
-			randy.x = rand(1, 100)
-			conflictcount++
-		while(randy.x in used_y)
-			randy.y = rand(1, 100)+30
-			conflictcount++
-		used_x.Insert(randy.x)
-		used_y.Insert(randy.y)
+		var/randy_valid = FALSE
+
+		while(!randy_valid)
+			randy.x = (rand(1, 10)/10)+rand(1, 200)+20 // Buffer space for readability
+			randy.y = (rand(1, 10)/10)+rand(1, 100)+30 // Offset vertically for viewing 'pleasure'
+			var/syscheck_pass = TRUE
+			for(var/datum/star_system/S in generated)
+				if(!syscheck_pass)
+					break
+				if(S.dist(randy) < 5)// Maybe this is enough?
+					syscheck_pass = FALSE
+					continue
+				if(S.name == "Rubicon" && (S.dist(randy) < 7)) //Rubicon's text is too fat.
+					syscheck_pass = FALSE
+					continue
+			if(syscheck_pass)
+				randy_valid = TRUE
+			else
+				toocloseconflict++
+
 		randy.sector = sector //Yeah do I even need to explain this?
 		randy.hidden = FALSE
 		generated += randy
+		if(prob(10))
+			//10 percent of systems have a trader for resupply.
+			var/x = pick(typesof(/datum/trader)-/datum/trader)
+			var/datum/trader/randytrader = new x
+			var/obj/structure/overmap/trader/randystation = SSstar_system.spawn_anomaly(randytrader.station_type, randy)
+			randystation.starting_system = randy.name
+			randystation.set_trader(randytrader)
+			randy.trader = randytrader
+			randytrader.generate_missions()
+
+
+		else if(prob(10))
+			var/x = pick(/datum/fleet/wolfpack, /datum/fleet/neutral, /datum/fleet/pirate, /datum/fleet/boarding, /datum/fleet/nanotrasen/light)
+			var/datum/fleet/randyfleet = new x
+			randyfleet.current_system = randy
+			randyfleet.hide_movements = TRUE //Prevent the shot of spam this caused to R1497.
+			randy.fleets += randyfleet
+			randy.alignment = randyfleet.alignment
+
+
+
 		SSstar_system.systems += randy
 	}
 	var/lowest_dist = 1000
@@ -885,10 +955,28 @@ To make things worse, this hellhole is entirely RNG, so good luck mapping it!
 				S.adjacency_list += partner.name
 
 	//There we go.
-	message_admins("Brazil has been completed. There were [conflictcount] conflicts during generation. Fun fact, jump lanes have been relaxed [relax] times by the algorithm!")
 
 #undef NONRELAXATION_PENALTY
+	//Pick a random entrypoint system
+	var/datum/star_system/inroute
+	var/ir_rub = 0
+	var/ir_othershit = 0
+	while (!inroute)
+		var/datum/star_system/picked = pick(systems)
+		if(rubiconnector in picked.adjacency_list)
+			ir_rub++
+			continue // Skip
+		if(picked.trader || picked.fleets.len)
+			ir_othershit++
+			continue
+		var/datum/star_system/sol/solsys = SSstar_system.system_by_id("Sol")
+		solsys.adjacency_list += picked.name
+		picked.adjacency_list += solsys.name
+		inroute = picked
+		inroute.is_hypergate = TRUE
 
+	var/time = (REALTIMEOFDAY - start_timeofday) / 10
+	message_admins("Brazil has been generated. T:[time]s CFS:[toocloseconflict]|[ir_rub]|[ir_othershit] Rubiconnector: [rubiconnector], Inroute system is [inroute]. Fun fact, jump lanes have been relaxed [relax] times by the algorithm!")
 /*
 <Summary>
 Welcome to the endgame. This sector is the hardest you'll encounter in game and holds the Syndicate capital.
@@ -904,7 +992,7 @@ Welcome to the endgame. This sector is the hardest you'll encounter in game and 
 
 /datum/star_system/sector4/aeterna
 	name = "Aeterna Victrix"
-	adjacency_list = list("Mediolanum", "Deimos")
+	adjacency_list = list("Mediolanum", "Deimos", "Romulus")
 	x = 90
 	y = 40
 
@@ -940,6 +1028,7 @@ Welcome to the endgame. This sector is the hardest you'll encounter in game and 
 	system_type = "radioactive"
 	adjacency_list = list("Abassi", "Deimos", "Phobos") //No going back from here...
 	threat_level = THREAT_LEVEL_DANGEROUS
+	hidden = TRUE
 	fleet_type = /datum/fleet/dolos //You're insane to attempt this.
 
 /datum/star_system/sector4/abassi

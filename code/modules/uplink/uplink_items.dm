@@ -1616,10 +1616,10 @@ datum/uplink_item/stealthy_tools/taeclowndo_shoes
 	cost = 2
 
 /datum/uplink_item/device_tools/encryptionkey
-	name = "Syndicate Encryption Key"
+	name = "Universal Decryption Key"
 	desc = "A key that, when inserted into a radio headset, allows you to listen to all station department channels \
 			as well as talk on an encrypted Syndicate channel with other agents that have the same key."
-	item = /obj/item/encryptionkey/syndicate
+	item = /obj/item/encryptionkey/hearall
 	cost = 2
 	surplus = 75
 	restricted = TRUE
@@ -2029,7 +2029,7 @@ datum/uplink_item/role_restricted/superior_honkrender
 /datum/uplink_item/role_restricted/holocarp
 	name = "Holocarp Parasites"
 	desc = "Fishsticks prepared through ritualistic means in honor of the god Carp-sie, capable of binding a holocarp \
-			to act as a servent and guardian to their host."
+			to act as a servant and guardian to their host."
 	item = /obj/item/guardiancreator/carp
 	cost = 18
 	surplus = 5
