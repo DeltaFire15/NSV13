@@ -66,9 +66,11 @@
 		if(armour_allocation)
 			if(OM.armour_quadrants[quadrant]["current_armour"] < OM.armour_quadrants[quadrant]["max_armour"]) //Armour Check
 				var/armour_integrity = (OM.armour_quadrants[quadrant]["current_armour"] / OM.armour_quadrants[quadrant]["max_armour"]) * 100
+				message_admins("armour integrity at [armour_integrity]%; [OM.armour_quadrants[quadrant]["current_armour"]] / [OM.armour_quadrants[quadrant]["max_armour"]] * 100")
 				if(armour_integrity < 15)
 					armour_integrity = 15
 				armour_repair_amount = ((382 * NUM_E **(0.0764 * armour_integrity))/(50 + NUM_E ** (0.0764 * armour_integrity)) ** 2 ) * (apnw.repair_efficiency * (armour_allocation / 100)) * 4 //Don't ask
+				message_admins("Repaired: [armour_repair_amount]")
 				if(apnw.repair_resources >= (armour_repair_amount * OM.mass))
 					OM.armour_quadrants[quadrant]["current_armour"] += armour_repair_amount
 					if(OM.armour_quadrants[quadrant]["current_armour"] > OM.armour_quadrants[quadrant]["max_armour"])
