@@ -127,6 +127,8 @@
 	if(!istype(I))
 		return FALSE
 	if(I.buffer && istype(I.buffer, /obj/machinery/ship_weapon/fiftycal))
+		if(turret && turret.gunner)	//We love edge cases.
+			get_overmap().remove_gunner(turret.gunner)
 		turret = I.buffer
 		to_chat(user, "<span class='warning'>Successfully linked [src] to [I.buffer].")
 		I.buffer = null
