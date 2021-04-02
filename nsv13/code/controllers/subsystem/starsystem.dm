@@ -120,8 +120,8 @@ SUBSYSTEM_DEF(star_system)
 			continue
 		neutral_zone_systems += S
 
-/**
-Returns a faction datum by its name (case insensitive!)
+/*
+Returns a faction datum by its id (a number)
 */
 /datum/controller/subsystem/star_system/proc/faction_by_id(id)
 	RETURN_TYPE(/datum/faction)
@@ -130,6 +130,14 @@ Returns a faction datum by its name (case insensitive!)
 	for(var/datum/faction/F in factions)
 		if(F.id == id)
 			return F
+/*
+Returns a faction datum by its name. This is case sensitive.
+*/
+/datum/controller/subsystem/star_system/proc/faction_by_name(name)
+	RETURN_TYPE(/datum/faction)
+	if(!name)
+		return
+	for(var/datum/faction/F in factions)
 
 
 /datum/controller/subsystem/star_system/proc/add_blacklist(what)
