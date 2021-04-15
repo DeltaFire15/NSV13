@@ -591,7 +591,7 @@ Proc to spool up a new Z-level for a player ship and assign it a treadmill.
 			mob.stop_sound_channel(channel)
 
 /obj/structure/overmap/proc/relay_to_nearby(sound, message, ignore_self=FALSE, sound_range=20, faction_check=FALSE) //Sends a sound + text message to nearby ships
-	for(var/obj/structure/overmap/ship in GLOB.overmap_objects)
+	for(var/obj/structure/overmap/ship in current_system?.system_contents)
 		if(ignore_self)
 			if(ship == src)
 				continue

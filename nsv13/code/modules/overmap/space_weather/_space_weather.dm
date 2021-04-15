@@ -5,6 +5,8 @@ The file for the space weather basetype.
 /datum/space_weather
 	var/name = "Space Weather Basetype"	//What's this weather called? Should be available for players to see via the Starmap console (maybe requiring a upgrade first)
 	var/desc = "This weather shouldn't exist. Tell god about this."	//This description is shown to a player ship which enters a system with an active weather condition.
+	var/begin_desc = "An affront to god appears to be forming.."	//Shown to player ships in a system that currently has this weather begin.
+	var/end_desc = "The affront to god appears to be subciding."	//Shown to player ships in a system that currently has this weather end.
 	var/longrange_hidden = FALSE	//If this is true, this weather will not show up on sensors.
 	var/shortrange_hidden = FALSE	//If this is true, this weather will not cause a message on system entering.
 	var/datum/star_system/attached_system				//Which system does this belong to? Generally, weather should always have a system.
@@ -48,6 +50,8 @@ Does something repeatedly over the course of the weather, with an internal of cy
 Does something when a ship arrives in the system. Usually just calls its initial effect.
 */
 /datum/space_weather/proc/on_arrive(obj/structure/overmap/target)
+	OM.relay(null, "<span class='notice'>[name] detected in this system.")
+	OM.relay(null, "<span class='notice'>[desc]</span>")
 	return initial_effect(target)
 
 /*
@@ -72,6 +76,7 @@ Does something when the weather begins, usually calling the initial effects and 
 */
 /datum/space_weather/proc/begin()
 	for(var/obj/structure/overmap/OM in attached_system.system_contents)
+		OM.relay(null, "<span class='notice'>[name] detected in this system.<br>[begin_desc]</span>")
 		initial_effect()
 	if(cycle_interval)
 		addtimer(CALLBACK(src, .proc/on_cycle), cycle_interval)
@@ -80,6 +85,7 @@ Does something when the weather ends, usually calling the final effect and then 
 */
 /datum/space_weather/proc/end()
 	for(var/obj/structure/overmap/OM in attached_system.system_contents)
+		OM.relay(null, "<span class='notice'>The [name]'s effects should now be subciding.<br>[end_desc]</span>")
 		final_effect(OM)
 	attached_system.current_weather = null
 	qdel(src)
