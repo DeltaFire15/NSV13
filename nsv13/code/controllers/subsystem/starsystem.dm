@@ -333,6 +333,7 @@ Returns a faction datum by its name (case insensitive!)
 	var/system_type = null //Set this to pre-spawn systems as a specific type.
 	var/event_chance = 0
 	var/list/possible_events = list()
+	var/datum/space_weather/current_weather
 	var/list/active_missions = list()
 
 	var/list/contents_positions = list()
