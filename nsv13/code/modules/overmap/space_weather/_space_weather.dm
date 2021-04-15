@@ -50,8 +50,8 @@ Does something repeatedly over the course of the weather, with an internal of cy
 Does something when a ship arrives in the system. Usually just calls its initial effect.
 */
 /datum/space_weather/proc/on_arrive(obj/structure/overmap/target)
-	OM.relay(null, "<span class='notice'>[name] detected in this system.")
-	OM.relay(null, "<span class='notice'>[desc]</span>")
+	if(!shortrange_hidden)
+		OM.relay(null, "<span class='notice'>[name] detected in this system.<br>[desc]</span>")
 	return initial_effect(target)
 
 /*
@@ -76,7 +76,8 @@ Does something when the weather begins, usually calling the initial effects and 
 */
 /datum/space_weather/proc/begin()
 	for(var/obj/structure/overmap/OM in attached_system.system_contents)
-		OM.relay(null, "<span class='notice'>[name] detected in this system.<br>[begin_desc]</span>")
+		if(!shortrange_hidden)
+			OM.relay(null, "<span class='notice'>[name] detected in this system.<br>[begin_desc]</span>")
 		initial_effect()
 	if(cycle_interval)
 		addtimer(CALLBACK(src, .proc/on_cycle), cycle_interval)
@@ -85,7 +86,8 @@ Does something when the weather ends, usually calling the final effect and then 
 */
 /datum/space_weather/proc/end()
 	for(var/obj/structure/overmap/OM in attached_system.system_contents)
-		OM.relay(null, "<span class='notice'>The [name]'s effects should now be subciding.<br>[end_desc]</span>")
+		if(!shortrange_hidden)
+			OM.relay(null, "<span class='notice'>The [name]'s effects should now be subciding.<br>[end_desc]</span>")
 		final_effect(OM)
 	attached_system.current_weather = null
 	qdel(src)
