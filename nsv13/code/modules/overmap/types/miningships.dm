@@ -14,6 +14,7 @@
 	bound_height = 96
 	bound_width = 96
 	armor = list("overmap_light" = 90, "overmap_medium" = 40, "overmap_heavy" = 15)
+	ship_tier = SHIP_TIER_NOT_AI
 
 //Player varieties
 

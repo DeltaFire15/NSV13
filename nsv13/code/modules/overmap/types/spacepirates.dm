@@ -19,6 +19,7 @@
 	ai_behaviour = AI_AGGRESSIVE
 	ai_flags = AI_FLAG_ANTI_FIGHTER //You didn't expect identical tactics, did you?
 	combat_dice_type = /datum/combat_dice/frigate
+	ship_tier = SHIP_TIER_ONE
 
 /obj/structure/overmap/spacepirate/ai/Initialize()
 	. = ..()
@@ -113,6 +114,7 @@
 	armor = list("overmap_light" = 80, "overmap_medium" = 45, "overmap_heavy" = 10)
 	ai_flags = AI_FLAG_BATTLESHIP | AI_FLAG_ELITE //Needs to be shooting all its guns
 	combat_dice_type = /datum/combat_dice/destroyer
+	ship_tier = SHIP_TIER_TWO
 
 /obj/structure/overmap/spacepirate/ai/syndie_gunboat/apply_weapons() //Dakka+
 	weapon_types[FIRE_MODE_ANTI_AIR] = new /datum/ship_weapon/aa_guns(src)
@@ -143,6 +145,7 @@
 	can_resupply = TRUE
 	ai_flags = AI_FLAG_SUPPLY | AI_FLAG_ELITE
 	combat_dice_type = /datum/combat_dice/flagship
+	ship_tier = SHIP_TIER_FIVE
 
 /obj/structure/overmap/spacepirate/ai/dreadnought/apply_weapons()
 	weapon_types[FIRE_MODE_ANTI_AIR] = new /datum/ship_weapon/aa_guns(src)

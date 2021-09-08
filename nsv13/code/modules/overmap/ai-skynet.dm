@@ -620,6 +620,8 @@ Adding tasks is easy! Just define a datum for it.
 
 /datum/fleet/New()
 	. = ..()
+	if(!GLOB.tiered_faction_ship_list.len)
+		SSstar_system.setup_ship_tier_index()
 	if(allow_difficulty_scaling)
 		//Account for pre-round spawned fleets.
 		if(SSovermap_mode?.mode)
@@ -1183,6 +1185,7 @@ Seek a ship thich we'll station ourselves around
 	var/obj/structure/overmap/squad_lead = null
 	var/obj/structure/overmap/last_overmap = null
 	var/switchsound_cooldown = 0
+	var/ship_tier = SHIP_TIER_INTENTIONAL_ERROR	//Used for ship list organization. Errors during init if not set away from this for an actual AI ship. Irrelevant for ships that are not AI ships.
 
 /obj/structure/overmap/proc/ai_fire(atom/target)
 	if(next_firetime > world.time)

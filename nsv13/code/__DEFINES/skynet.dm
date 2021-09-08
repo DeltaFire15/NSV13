@@ -12,15 +12,6 @@
 //AI PDC range
 #define AI_PDC_RANGE 12
 
-//Fleet generation & Difficulty Defines
-#define FLEET_DIFFICULTY_EASY 2 //if things end up being too hard, this is a safe number for a fight you _should_ always win.
-#define FLEET_DIFFICULTY_MEDIUM 5
-#define FLEET_DIFFICULTY_HARD 8
-#define FLEET_DIFFICULTY_VERY_HARD 10
-#define FLEET_DIFFICULTY_INSANE 15 //If you try to take on the rubicon ;)
-#define FLEET_DIFFICULTY_WHAT_ARE_YOU_DOING 25
-#define FLEET_DIFFICULTY_DEATH 30 //Suicide run
-
 #define SCALE_FLEETS_WITH_POP TRUE //Change this to false if you want fleet size to be static. Fleets will be scaled down if the game detects underpopulation, however it can also scale them up to be more of a challenge.
 
 //Fleet behaviour. Border patrol fleets will stick to patrolling their home space only. Invasion fleets ignore home space and fly around. If the fleet has a goal system or is a interdictor, this gets mostly ignored, but stays as fallback.

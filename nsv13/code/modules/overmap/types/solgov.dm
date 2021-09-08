@@ -16,6 +16,7 @@
 	max_integrity = 500
 	integrity_failure = 500
 	armor = list("overmap_light" = 90, "overmap_medium" = 50, "overmap_heavy" = 25)
+	ship_tier = SHIP_TIER_NOT_AI
 
 /obj/structure/overmap/nanotrasen/solgov/carrier
 	name = "rio-grande class support cruiser"
@@ -30,6 +31,7 @@
 	max_integrity = 1000
 	integrity_failure = 1000
 	armor = list("overmap_light" = 90, "overmap_medium" = 70, "overmap_heavy" = 20)
+	ship_tier = SHIP_TIER_NOT_AI
 
 /obj/structure/overmap/nanotrasen/solgov/apply_weapons()
 	. = ..()
@@ -53,6 +55,7 @@
 	max_integrity = 750
 	integrity_failure = 750
 	armor = list("overmap_light" = 90, "overmap_medium" = 50, "overmap_heavy" = 25)
+	ship_tier = SHIP_TIER_NOT_AI
 
 //Player Versions
 
@@ -73,11 +76,13 @@
 	shots_left = 10000 //Issa laser.
 	torpedoes = 10
 	missiles = 10
+	ship_tier = SHIP_TIER_TWO
 
 /obj/structure/overmap/nanotrasen/solgov/aetherwhisp/ai
 	ai_controlled = TRUE
 	ai_flags = AI_FLAG_DESTROYER
 	combat_dice_type = /datum/combat_dice/destroyer
+	ship_tier = SHIP_TIER_TWO
 
 /obj/structure/overmap/nanotrasen/solgov/carrier/ai
 	ai_controlled = TRUE
@@ -87,6 +92,7 @@
 	torpedoes = 0
 	can_resupply = TRUE
 	combat_dice_type = /datum/combat_dice/carrier
+	ship_tier = SHIP_TIER_CORE
 
 //These little bastards are feckin horrible
 /obj/structure/overmap/nanotrasen/solgov/ai/fighter //need custom AI behaviour to escort bombers if applicable
@@ -108,6 +114,7 @@
 	armor = list("overmap_light" = 5, "overmap_medium" = 5,  "overmap_heavy" = 90)
 	ai_flags = AI_FLAG_SWARMER
 	combat_dice_type = /datum/combat_dice/fighter
+	ship_tier = SHIP_TIER_UNTIERED
 
 /obj/structure/overmap/nanotrasen/solgov/ai/fighter/apply_weapons()
 	weapon_types[FIRE_MODE_BLUE_LASER] = new /datum/ship_weapon/phaser(src)

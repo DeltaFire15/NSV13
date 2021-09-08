@@ -28,6 +28,7 @@
 	role = PVP_SHIP
 	starting_system = "The Badlands" //Relatively safe start, fleets won't hotdrop you here.
 	armor = list("overmap_light" = 99, "overmap_medium" = 45, "overmap_heavy" = 20)
+	ship_tier = SHIP_TIER_NOT_AI
 
 /obj/structure/overmap/syndicate/pvp/apply_weapons()
 	weapon_types[FIRE_MODE_TORPEDO] = new/datum/ship_weapon/torpedo_launcher(src)
@@ -84,6 +85,7 @@
 	ai_flags = AI_FLAG_DESTROYER
 	combat_dice_type = /datum/combat_dice/frigate
 	possible_interior_maps = list('_maps/templates/boarding/syndicate/mako.dmm')
+	ship_tier = SHIP_TIER_ONE
 
 /obj/structure/overmap/syndicate/ai/mako_carrier
 	name = "Sturgeon class escort carrier"
@@ -96,6 +98,7 @@
 	armor = list("overmap_light" = 30, "overmap_medium" = 30, "overmap_heavy" = 30)
 	combat_dice_type = /datum/combat_dice/carrier
 	possible_interior_maps = list('_maps/templates/boarding/syndicate/mako_carrier.dmm')
+	ship_tier = SHIP_TIER_TWO	//Launches fighters, but doesn't have any resupply abilities. Therefore, not core.
 
 /obj/structure/overmap/syndicate/ai/mako_flak
 	name = "Mauler class flak frigate"
@@ -103,6 +106,7 @@
 	flak_battery_amount = 1
 	mass = MASS_MEDIUM
 	combat_dice_type = /datum/combat_dice/frigate
+	ship_tier = SHIP_TIER_ONE
 
 /obj/structure/overmap/syndicate/ai/nuclear
 	name = "Thermonuclear destroyer"
@@ -120,6 +124,7 @@
 	armor = list("overmap_light" = 90, "overmap_medium" = 75, "overmap_heavy" = 30)
 	combat_dice_type = /datum/combat_dice/destroyer/nuclear
 	possible_interior_maps = list('_maps/templates/boarding/syndicate/nukefrigate.dmm')
+	ship_tier = SHIP_TIER_THREE
 
 /obj/structure/overmap/syndicate/ai/nuclear/elite
 	name = "Nightmare class thermonuclear deterrent"
@@ -134,6 +139,7 @@
 	armor = list("overmap_light" = 90, "overmap_medium" = 75, "overmap_light" = 50)
 	ai_flags = AI_FLAG_DESTROYER | AI_FLAG_ELITE
 	combat_dice_type = /datum/combat_dice/destroyer/nuclear
+	ship_tier = SHIP_TIER_FOUR
 
 /obj/structure/overmap/syndicate/ai/destroyer
 	name = "Hammerhead class missile destroyer"
@@ -150,6 +156,7 @@
 	bounty = 1000
 	combat_dice_type = /datum/combat_dice/destroyer
 	possible_interior_maps = list('_maps/templates/boarding/syndicate/destroyer.dmm')
+	ship_tier = SHIP_TIER_TWO
 
 /obj/structure/overmap/syndicate/ai/destroyer/elite
 	name = "Special Ops Torpedo Destroyer"
@@ -163,6 +170,7 @@
 	bounty = 1500
 	ai_flags = AI_FLAG_DESTROYER | AI_FLAG_ELITE
 	combat_dice_type = /datum/combat_dice/destroyer
+	ship_tier = SHIP_TIER_FOUR
 
 /obj/structure/overmap/syndicate/ai/destroyer/flak
 	name = "Hammerhead class flak destroyer"
@@ -176,6 +184,7 @@
 	integrity_failure = 450
 	armor = list("overmap_light" = 90, "overmap_medium" = 60, "overmap_heavy" = 20)
 	combat_dice_type = /datum/combat_dice/destroyer/flycatcher
+	ship_tier = SHIP_TIER_TWO
 
 /obj/structure/overmap/syndicate/ai/cruiser
 	name = "Barracuda class tactical cruiser"
@@ -192,6 +201,7 @@
 	ai_flags = AI_FLAG_BATTLESHIP
 	combat_dice_type = /datum/combat_dice/cruiser
 	possible_interior_maps = list()
+	ship_tier = SHIP_TIER_THREE
 
 /obj/structure/overmap/syndicate/ai/cruiser/elite
 	name = "Special ops tactical cruiser"
@@ -203,6 +213,7 @@
 	missiles = 10
 	bounty = 4000
 	ai_flags = AI_FLAG_BATTLESHIP | AI_FLAG_ELITE
+	ship_tier = SHIP_TIER_FOUR
 
 /obj/structure/overmap/syndicate/ai/carrier
 	name = "Syndicate combat carrier"
@@ -225,6 +236,7 @@
 	ai_flags = AI_FLAG_SUPPLY
 	combat_dice_type = /datum/combat_dice/carrier
 	possible_interior_maps = list()
+	ship_tier = SHIP_TIER_CORE
 
 /obj/structure/overmap/syndicate/ai/carrier/elite
 	name = "Special ops escort carrier"
@@ -239,6 +251,7 @@
 							/obj/structure/overmap/syndicate/ai/bomber)
 	ai_flags = AI_FLAG_SUPPLY | AI_FLAG_ELITE
 	combat_dice_type = /datum/combat_dice/carrier
+	ship_tier = SHIP_TIER_FOUR
 
 /obj/structure/overmap/syndicate/ai/carrier/apply_weapons()
 	weapon_types[FIRE_MODE_ANTI_AIR] = new /datum/ship_weapon/aa_guns(src)
@@ -268,6 +281,7 @@
 	combat_dice_type = /datum/combat_dice/battleship
 	possible_interior_maps = list()
 	torpedo_type = /obj/item/projectile/guided_munition/torpedo/nuclear
+	ship_tier = SHIP_TIER_FIVE
 
 /obj/structure/overmap/syndicate/ai/battleship/apply_weapons()
 	weapon_types[FIRE_MODE_ANTI_AIR] = new /datum/ship_weapon/aa_guns(src)
@@ -292,6 +306,7 @@
 	speed_limit = 3
 	combat_dice_type = /datum/combat_dice/cruiser
 	possible_interior_maps = list()
+	ship_tier = SHIP_TIER_THREE
 
 /obj/structure/overmap/syndicate/ai/assault_cruiser/apply_weapons()
 	weapon_types[FIRE_MODE_ANTI_AIR] = new /datum/ship_weapon/aa_guns(src)
@@ -348,6 +363,7 @@
 	damage_states = FALSE
 	combat_dice_type = /datum/combat_dice/destroyer/flycatcher
 	possible_interior_maps = list()
+	ship_tier = SHIP_TIER_TWO
 
 /obj/structure/overmap/syndicate/ai/gunboat/apply_weapons()
 	weapon_types[FIRE_MODE_ANTI_AIR] = new /datum/ship_weapon/aa_guns(src)
@@ -377,6 +393,7 @@
 	cloak_factor = 100 //Not a perfect cloak, mind you.
 	combat_dice_type = /datum/combat_dice/destroyer
 	possible_interior_maps = list()
+	ship_tier = SHIP_TIER_TWO
 
 /obj/structure/overmap/syndicate/ai/submarine/Initialize()
 	. = ..()
@@ -411,6 +428,7 @@
 	missiles = 8
 	torpedoes = 0
 	combat_dice_type = /datum/combat_dice/cruiser
+	ship_tier = SHIP_TIER_FOUR
 
 /obj/structure/overmap/syndicate/ai/kadesh/Initialize()
 	. = ..()
@@ -450,6 +468,7 @@
 	ai_flags = AI_FLAG_SWARMER
 	combat_dice_type = /datum/combat_dice/fighter
 	possible_interior_maps = list()
+	ship_tier = SHIP_TIER_UNTIERED
 
 /obj/structure/overmap/syndicate/ai/fighter/apply_weapons()
 	weapon_types[FIRE_MODE_ANTI_AIR] = new/datum/ship_weapon/light_cannon(src)
@@ -473,6 +492,7 @@
 	ai_flags = AI_FLAG_DESTROYER | AI_FLAG_SWARMER
 	combat_dice_type = /datum/combat_dice/bomber
 	possible_interior_maps = list()
+	ship_tier = SHIP_TIER_UNTIERED
 
 /obj/structure/overmap/syndicate/ai/bomber/apply_weapons()
 	weapon_types[FIRE_MODE_ANTI_AIR] = new/datum/ship_weapon/light_cannon(src)

@@ -68,6 +68,45 @@ SUBSYSTEM_DEF(star_system)
 		neutral_zone_systems += S
 
 /**
+Creates a ship tier index split into
+>Faction 1
+	>Untiered
+	>Tier CORE
+		>Carriers
+		>We don't have other core ships so this is for the future
+	>Tier 1
+	>Tier 2
+	>Tier 3
+	>Tier 4
+	>Tier 5
+...
+*/
+/datum/controller/subsystem/star_system/proc/setup_ship_tier_index()
+	//Preliminary setup of list
+	GLOB.tiered_faction_ship_list["Invalid"] = list()
+	for(var/index in GLOB.core_alignments)
+		GLOB.tiered_faction_ship_list["[index]"] = list()
+		var/list/factioned_shiplist = GLOB.tiered_faction_ship_list["[index]"]
+		for(var/tier = SHIP_TIER_UNTIERED, tier <= MAX_SHIP_TIER, tier++)
+			factioned_shiplist["[tier]"] = list()
+
+	//Filtering in the actual ship types.
+	for(var/index in GLOB.core_alignments)
+		var/list/current_types = GLOB.ship_basetypes[index]
+		for(var/ambiguous_ship_type in current_types)
+			var/obj/structure/overmap/ship_type = ambiguous_ship_type
+			var/shipstier = initial(ship_type.ship_tier)
+			if(shipstier == SHIP_TIER_INTENTIONAL_ERROR)
+				var/list/invalid_list = GLOB.tiered_faction_ship_list["Invalid"]
+				message_admins("Invalid ship tier for [ship_type]. Please set up that type's tier.")
+				invalid_list.Add(ship_type)
+				continue
+			if(shipstier == SHIP_TIER_NOT_AI)
+				continue	//Just skip it. We'll never use it.
+				
+			var/list/specific_tier_list = GLOB.tiered_faction_ship_list["[index]"]["[shipstier]"]
+			specific_tier_list.Add(ship_type)
+/**
 Returns a faction datum by its name (case insensitive!)
 */
 /datum/controller/subsystem/star_system/proc/faction_by_id(id)
