@@ -35,19 +35,23 @@ GLOBAL_LIST_INIT(ship_basetypes, list(
     subtypesof(/obj/structure/overmap/spacepirate),
     subtypesof(/obj/structure/overmap/nanotrasen/solgov)))  //Basetypes for our fun tiered list. Linked with the previous list and will be used as Key-Value pair in the ship list.
 
-#define ITERATE_UPWARDS 1   //Small ships first, big ones later. Will cause a swarm of smol ships with maybe some bigger ones.
-#define ITERATE_DOWNWARDS 2 //Big ships first, smol ones later. Will cause a capital ship force with a few escorts.
-#define ITERATE_RANDOM 3    //Pick random ships till we got no more points. True RNG.
-                            //!!Core ships always get chosen first.
+#define ITERATE_UPWARDS "upwards_mode"      //Small ships first, big ones later. Will cause a swarm of smol ships with maybe some bigger ones.
+#define ITERATE_DOWNWARDS "downwards_mode"  //Big ships first, smol ones later. Will cause a capital ship force with a few escorts.
+#define ITERATE_RANDOM "rng_mode"           //Pick random ships till we got no more points. True RNG.
+#define ITERATE_PYRAMID "pyramid_mode"      //1 ship of higher tier needs X ships of the tier below to exist.
+                                            //!!Core ships always get chosen first.
+
+#define PYRAMID_WIDTH 2 //The amount of ships of a tier required to have one ship of the tier above. Provided the fleet uses Pyramid mode.
 
 //Ship tier costs. Assumption: Ships within a tier are somewhat comparable but just with different specialities, whilst different tiers have big differences.
-#define TIER_COST_CORE 6    //Core ship amount is artificially restricted by the fleet point number
+//#define TIER_COST_CORE 6    //Core ship amount is artificially restricted by the fleet point number. "Free" for now.
 #define TIER_COST_ONE 1
 #define TIER_COST_TWO 2
 #define TIER_COST_THREE 4
 #define TIER_COST_FOUR 7
 #define TIER_COST_FIVE 16
 
+#define CORE_SHIP_PREVALENCE 18    //One Core ship per how many points? Rounded up, minimum of one.
 
 //Fleet Difficulty Defines
 #define FLEET_DIFFICULTY_EASY 2 //if things end up being too hard, this is a safe number for a fight you _should_ always win.
