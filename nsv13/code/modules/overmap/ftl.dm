@@ -66,17 +66,20 @@
 			enemy_queue -= X
 	if(!contents_positions.len)
 		return //Nothing stored, no need to restore.
-	for(var/atom/movable/ship in system_contents){
+	for(var/atom/movable/ship in system_contents)
 		if(!contents_positions[ship])
-			continue
-		var/list/info = contents_positions[ship]
-		ship.forceMove(get_turf(locate(info["x"], info["y"], occupying_z))) //Let's unbox that ship. Nice.
+			if(!ship.z)	//It's in nullspace
+				add_ship(ship)
+			else
+				continue
+		else
+			var/list/info = contents_positions[ship]
+			ship.forceMove(get_turf(locate(info["x"], info["y"], occupying_z))) //Let's unbox that ship. Nice.
 		if(istype(ship, /obj/structure/overmap))
 			var/obj/structure/overmap/OM = ship
 			START_PROCESSING(SSphysics_processing, OM) //And let's restart its processing too..
 			if(OM.physics2d)
 				START_PROCESSING(SSphysics_processing, OM.physics2d) //Respawn this ship's collider so it can start colliding once more
-	}
 	contents_positions = null
 	contents_positions = list()
 
