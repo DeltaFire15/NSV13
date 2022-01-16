@@ -24,7 +24,7 @@ SUBSYSTEM_DEF(garbage)
 
 	//Queue
 	var/list/queues
-	#ifdef LEGACY_REFERENCE_TRACKING
+	#ifdef REFERENCE_TRACKING
 	var/list/reference_find_on_fail = list()
 	#endif
 
@@ -151,7 +151,7 @@ SUBSYSTEM_DEF(garbage)
 			++gcedlasttick
 			++totalgcs
 			pass_counts[level]++
-			#ifdef LEGACY_REFERENCE_TRACKING
+			#ifdef REFERENCE_TRACKING
 			reference_find_on_fail -= refID	//It's deleted we don't care anymore.
 			#endif
 			if (MC_TICK_CHECK)
@@ -168,7 +168,7 @@ SUBSYSTEM_DEF(garbage)
 		switch (level)
 			if (GC_QUEUE_CHECK)
 				#ifdef REFERENCE_TRACKING
-				D.find_references()
+				//D.find_references()
 				#elif defined(LEGACY_REFERENCE_TRACKING)
 				if(reference_find_on_fail[refID])
 					INVOKE_ASYNC(D, /datum/proc/find_references_legacy)
@@ -183,7 +183,7 @@ SUBSYSTEM_DEF(garbage)
 				var/type = D.type
 				var/datum/qdel_item/I = items[type]
 
-				log_world("## TESTING: GC: -- \ref[D] | [type] was unable to be GC'd --")
+				log_reftracker("## TESTING: GC: -- \ref[D] | [type] was unable to be GC'd --")
 				#ifdef TESTING
 				for(var/c in GLOB.admins) //Using testing() here would fill the logs with ADMIN_VV garbage
 					var/client/admin = c
@@ -343,7 +343,7 @@ SUBSYSTEM_DEF(garbage)
 			#ifdef LEGACY_REFERENCE_TRACKING
 			if (QDEL_HINT_FINDREFERENCE) //qdel will, if LEGACY_REFERENCE_TRACKING is enabled, display all references to this object, then queue the object for deletion.
 				SSgarbage.Queue(D)
-				D.find_references_legacy()
+				INVOKE_ASYNC(D, /datum/proc/find_references_legacy)
 			if (QDEL_HINT_IFFAIL_FINDREFERENCE)
 				SSgarbage.Queue(D)
 				SSgarbage.reference_find_on_fail[REF(D)] = TRUE
