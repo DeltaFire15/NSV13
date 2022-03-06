@@ -402,6 +402,7 @@
 	combat_dice_type = /datum/combat_dice/destroyer
 	torpedo_type = /obj/item/projectile/guided_munition/torpedo/disruptor
 	possible_interior_maps = list()
+	cloaker = TRUE
 
 /obj/structure/overmap/syndicate/ai/submarine/Initialize()
 	. = ..()
@@ -453,6 +454,41 @@
 
 /obj/structure/overmap/syndicate/ai/kadesh/on_interdict()
 	add_sensor_profile_penalty(150, 10 SECONDS)
+
+/obj/structure/overmap/syndicate/ai/terminus
+	name = "Unknown cruiser class vessel"
+	desc = "No database entry on this vessel found in the Whiterapids ship registry."
+	obj_integrity = 900
+	max_integrity = 900
+	integrity_failure = 900
+	icon = 'nsv13/icons/overmap/syndicate/syn_terminus.dmi'
+	icon_state = "terminus"
+	damage_states = FALSE //One day..
+	sprite_size = 96
+	bound_height = 128
+	bound_width = 128
+	armor = list("overmap_light" = 80, "overmap_medium" = 50, "overmap_heavy" = 30)
+	ai_flags = AI_FLAG_DESTROYER | AI_FLAG_ELITE
+	flak_battery_amount = 1
+	mass = MASS_LARGE
+	/*
+	shots_left = ??? //How many bullets does it need?
+	missiles = ??? //Does it even get missiles?
+	torpedoes = ??? //Torp good?
+	*/
+	combat_dice_type = /datum/combat_dice/cruiser
+	phasing = PHASE_OFFLINE
+	phase_coils = TRUE
+
+/obj/structure/overmap/syndicate/ai/terminus/apply_weapons()	//For now just the Kadesh's copied - CHANGE THIS
+	weapon_types[FIRE_MODE_ANTI_AIR] = new /datum/ship_weapon/aa_guns(src)
+	weapon_types[FIRE_MODE_TORPEDO] = null
+	weapon_types[FIRE_MODE_RAILGUN] = null
+	weapon_types[FIRE_MODE_MAC] = new /datum/ship_weapon/mac(src)
+	weapon_types[FIRE_MODE_AMS] = new /datum/ship_weapon/vls(src)
+	weapon_types[FIRE_MODE_FLAK] = new /datum/ship_weapon/flak(src)
+	weapon_types[FIRE_MODE_GAUSS] = new /datum/ship_weapon/gauss(src)
+	weapon_types[FIRE_MODE_MISSILE] = new /datum/ship_weapon/missile_launcher(src)
 
 /obj/structure/overmap/syndicate/ai/fistofsol
 	name = "\improper SSV Fist of Sol"

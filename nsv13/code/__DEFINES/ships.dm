@@ -5,3 +5,11 @@
 #define MASS_LARGE 7 //20-40 Players - Medium Capital Ships
 #define MASS_TITAN 150 //40+ Players - Large Capital Ships
 #define MASS_IMMOBILE 200 //Things that should not be moving. See: stations
+
+//Defines for phase stuff.
+#define PHASE_INCAPABLE 0
+#define PHASE_OFFLINE 1
+#define PHASE_STARTING 2
+#define PHASE_ACTIVE 3
+#define PHASE_DEACTIVATING 4
+#define PHASE_OVERLOADING 5

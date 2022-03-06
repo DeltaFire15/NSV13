@@ -378,7 +378,7 @@ This proc is to be used when someone gets stuck in an overmap ship, gauss, WHATE
 	pixel_x = last_offset.x*32
 	pixel_y = last_offset.y*32
 
-	animate(src, transform=mat_to, pixel_x = offset.x*32, pixel_y = offset.y*32, time = time*10, flags=ANIMATION_END_NOW)
+	animate(src, transform=mat_to, pixel_x = offset.x*32, pixel_y = offset.y*32, time = time*10/*, flags=ANIMATION_END_NOW*/)
 	/*
 	if(last_target)
 		var/target_angle = Get_Angle(src,last_target)
@@ -396,7 +396,7 @@ This proc is to be used when someone gets stuck in an overmap ship, gauss, WHATE
 			continue
 		C.pixel_x = last_offset.x*32
 		C.pixel_y = last_offset.y*32
-		animate(C, pixel_x = offset.x*32, pixel_y = offset.y*32, time = time*10, flags=ANIMATION_END_NOW)
+		animate(C, pixel_x = offset.x*32, pixel_y = offset.y*32, time = time*10/*, flags=ANIMATION_END_NOW*/)
 	user_thrust_dir = 0
 	update_icon()
 	if(autofire_target && !aiming)

@@ -181,6 +181,14 @@
 	var/list/interior_entry_points = list()
 	var/boarding_reservation_z = null //Do we have a reserved Z-level for boarding? This is set up on instance_overmap. Ships being boarded copy this value from the boarder.
 	var/obj/structure/overmap/active_boarding_target = null
+
+	var/phase_coils = FALSE	//God save me. If a ship has a phase coil overlay provided it's able to phase.
+	var/phasing = PHASE_INCAPABLE
+	var/obj/effect/abstract/coil_effect/coil_effect
+	var/phase_time = 0	//How long has phasing been active
+
+	var/cloaker = FALSE	//Prevent handle_cloak from being called unless a cloaker because it fucks with the alpha values and animations for phasing.
+
 /**
 Proc to spool up a new Z-level for a player ship and assign it a treadmill.
 @return OM, a newly spawned overmap sitting on its treadmill as it ought to be.
@@ -656,6 +664,52 @@ Proc to spool up a new Z-level for a player ship and assign it a treadmill.
 			add_overlay("rcs_right")
 	if(back_thrust)
 		add_overlay("thrust")
+	
+	if(phase_coils && !coil_effect)
+		coil_effect = new /obj/effect/abstract/coil_effect()
+		coil_effect.icon = icon
+		vis_contents |= coil_effect
+
+/obj/effect/abstract/coil_effect
+	icon_state = "phase_coils"
+	alpha = 0
+	layer = ABOVE_ALL_MOB_LAYER
+	appearance_flags = VIS_INHERIT_PLANE | RESET_ALPHA
+	mouse_opacity = MOUSE_OPACITY_TRANSPARENT
+
+/obj/structure/overmap/proc/phase_test()
+	animate(src, alpha = 70, time = 3 SECONDS)	//No worky
+	animate(src)
+
+	if(phase_coils && coil_effect)
+		coil_effect.coil_animation()
+	else if(phase_coils && !coil_effect)
+		message_admins("Fucky-wucky: Coil has no effect")
+	else
+		message_admins("Fucky-wucky: Ship has no coils")
+	
+	//add_filter("phase_blur_1", 3, list("type" = "blur", size = 0))
+	//add_filter("phase_blur_2", 3, list("type" = "blur", "size" = 0))
+	add_filter("phase_distort_1", 3, list("type" = "ripple", 0, 0, "size"=rand()*2.5+0.5, "offset"=0))	//No worky
+	//add_filter("phase_distort_2", 3, list("type" = "wave", 0, 0, size=rand()*2.5+0.5, offset=rand()))
+	//animate(get_filter("phase_blur_1"), size = rand(5, 40) / 10, time = 0.5 SECONDS, loop = -1)
+	//animate(size = rand(5, 40) / 10, time = 0.5 SECONDS, loop = -1)
+	var/filter = get_filter("phase_distort_1") //No worky
+	animate(filter, x = 60*rand() - 30, y = 60*rand() - 30, size=rand()*2.5+0.5, offset=1, time = 0.5 SECONDS, loop = -1)
+	animate(offset = 0, time = 1 SECONDS)
+
+	//animate(x = 60*rand() - 30, y = 60*rand() - 30, size=rand()*2.5+0.5, offset=rand(), time = 1 SECONDS)
+	
+
+/obj/effect/abstract/coil_effect/proc/coil_animation()
+	animate(src, time = 1 SECONDS, alpha = 255)	//Kinda worky?
+	animate(src)
+	add_filter("coil_bloom_1", 3, list("type" = "bloom", 0, 0, "threshold" = "#000000", "size" = 3, "offset" = 2))	//#5F2B96
+	//add_filter("coil_bloom_2", 3, list("type" = "bloom", 0, 0, threshold = "#000000", size = 5, offset = 5))
+	var/filter = get_filter("coil_bloom_1")
+	animate(filter, offset = 4, time = 1.5 SECONDS, alpha = 220, loop = -1)	//Worky
+	animate(offset = 2, time = 1.5 SECONDS, alpha = 150)	//worky
+	//animate(get_filter("coil_bloom_2"), size = rand(10, 100) / 10, time = 1 SECONDS, alpha = rand(150, 220), loop = -1)
 
 /obj/structure/overmap/proc/apply_damage_states()
 	if(!damage_states)

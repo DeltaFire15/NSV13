@@ -338,6 +338,8 @@ Called by add_sensor_profile_penalty if remove_in is used.
 
 /obj/structure/overmap/proc/handle_cloak(state)
 	set waitfor = FALSE
+	if(!cloaker)
+		return
 	switch(state)
 		if(TRUE)
 			animate(src, 15, alpha = cloak_factor)

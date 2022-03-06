@@ -209,6 +209,7 @@
 	OM.backward_maxthrust *= 1.15
 	OM.side_maxthrust *= 1.15
 	OM.max_angular_acceleration *= 1.15
+	OM.cloaker = TRUE
 	OM.handle_cloak(TRUE)
 	return TRUE
 
