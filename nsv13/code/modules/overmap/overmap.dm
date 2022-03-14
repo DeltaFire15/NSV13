@@ -702,12 +702,12 @@ Proc to spool up a new Z-level for a player ship and assign it a treadmill.
 	
 
 /obj/effect/abstract/coil_effect/proc/coil_animation()
-	animate(src, time = 1 SECONDS, alpha = 255)	//Kinda worky?
+	animate(src, time = 1 SECONDS, alpha = 150)	//Kinda worky?
 	animate(src)
 	add_filter("coil_bloom_1", 3, list("type" = "bloom", 0, 0, "threshold" = "#000000", "size" = 3, "offset" = 2))	//#5F2B96
 	//add_filter("coil_bloom_2", 3, list("type" = "bloom", 0, 0, threshold = "#000000", size = 5, offset = 5))
 	var/filter = get_filter("coil_bloom_1")
-	animate(filter, offset = 4, time = 1.5 SECONDS, alpha = 220, loop = -1)	//Worky
+	animate(filter, offset = 6, time = 1.5 SECONDS, alpha = 170, loop = -1)	//Worky
 	animate(offset = 2, time = 1.5 SECONDS, alpha = 150)	//worky
 	//animate(get_filter("coil_bloom_2"), size = rand(10, 100) / 10, time = 1 SECONDS, alpha = rand(150, 220), loop = -1)
 
