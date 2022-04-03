@@ -653,7 +653,8 @@ Adding tasks is easy! Just define a datum for it.
 				else
 					message_admins("Failed to spawn ghost ship due to insufficent players.")
 					return
-
+			if(!length(ship_list))
+				return
 			var/target_location = locate(rand(round(world.maxx/2) + 10, world.maxx - 39), rand(40, world.maxy - 39), OM.z)
 			var/obj/structure/overmap/selected_ship = pick(ship_list)
 			

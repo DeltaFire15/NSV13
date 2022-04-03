@@ -94,7 +94,7 @@ GLOBAL_LIST_EMPTY(knpcs)
 		path = get_path_to(H, dest, 120, 0, access_card, !(H.wear_suit?.clothing_flags & STOPSPRESSUREDAMAGE && H.head?.clothing_flags & STOPSPRESSUREDAMAGE), avoid)
 
 		var/obj/structure/dense_object = locate() in get_step(H, H.dir) //If we're stuck
-		if(climbable[dense_object.type])
+		if(dense_object && climbable[dense_object.type])
 			H.forceMove(get_turf(dense_object))
 			H.visible_message("<span class='warning'>[H] climbs onto [dense_object]!</span>")
 			H.Stun(2 SECONDS) //Table.
