@@ -305,7 +305,7 @@
 		var/target_range = get_dist(ship,src)
 		if(target_range > 30 || target_range <= 0) //Random pulled from the aether
 			continue
-		if(!QDELETED(ship) && isovermap(ship) && ship.is_sensor_visible(src) >= SENSOR_VISIBILITY_TARGETABLE)
+		if(!QDELETED(ship) && isovermap(ship) && ship.is_sensor_visible(src) >= SENSOR_VISIBILITY_TARGETABLE && !CHECK_BITFIELD(ship.ship_flags, SHIP_AI_UNTARGETTABLE))
 			last_target = ship
 			fire_weapon(ship, mode=FIRE_MODE_FLAK, lateral=TRUE)
 			flak_left --
@@ -360,7 +360,7 @@
 			var/target_range = get_dist(ship,src)
 			if(target_range > 30 || target_range <= 0) //Random pulled from the aether
 				continue
-			if(!QDELETED(ship) && isovermap(ship) && ship.is_sensor_visible(src) >= SENSOR_VISIBILITY_TARGETABLE)
+			if(!QDELETED(ship) && isovermap(ship) && ship.is_sensor_visible(src) >= SENSOR_VISIBILITY_TARGETABLE && !CHECK_BITFIELD(ship.ship_flags, SHIP_AI_UNTARGETTABLE))
 				last_target = ship
 				if(light_shots_left <= 0)
 					spawn(150)

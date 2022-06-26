@@ -30,8 +30,12 @@ Defending fleets have priority for shooting (A turn iterates through a system's 
 	for(var/datum/fleet/F in fleets)
 		if(!F || QDELETED(F))	//Lets be safe
 			continue
+		if(CHECK_BITFIELD(F.fleet_flags, FLEET_NO_DICECOMBAT))
+			continue
 		for(var/datum/fleet/EF in shuffle(fleets - F))
 			if(!EF || QDELETED(EF))
+				continue
+			if(CHECK_BITFIELD(EF.fleet_flags, FLEET_NO_DICECOMBAT))
 				continue
 			if(EF.faction_id != F.faction_id)
 				if(!already_announced_combat && !hidden)
@@ -45,8 +49,12 @@ Defending fleets have priority for shooting (A turn iterates through a system's 
 /datum/star_system/proc/check_conflict_status()
 	for(var/i = 1; i <= fleets.len; i++)
 		var/datum/fleet/F = fleets[i]
+		if(CHECK_BITFIELD(F.fleet_flags, FLEET_NO_DICECOMBAT))
+			continue
 		for(var/j = i + 1; j <= fleets.len; j++)
 			var/datum/fleet/FF = fleets[j]
+			if(CHECK_BITFIELD(FF.fleet_flags, FLEET_NO_DICECOMBAT))
+				continue
 			if(F.faction_id != FF.faction_id)
 				return TRUE
 

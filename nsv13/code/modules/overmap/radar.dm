@@ -314,6 +314,8 @@ Called by add_sensor_profile_penalty if remove_in is used.
 //Cloaking and sensors!
 
 /obj/structure/overmap/proc/is_sensor_visible(obj/structure/overmap/observer) //How visible is this enemy ship to sensors? Sometimes ya gotta get real up close n' personal.
+	if(CHECK_BITFIELD(ship_flags, SHIP_SENSOR_CLOAK))
+		return SENSOR_VISIBILITY_GHOST
 	var/dist = overmap_dist(src, observer)
 	if(dist <= 0)
 		dist = 1
@@ -355,7 +357,7 @@ Called by add_sensor_profile_penalty if remove_in is used.
 	for(var/obj/effect/overmap_anomaly/OA in linked?.current_system?.system_contents)
 		if(OA && istype(OA) && OA.z == linked?.z)
 			blips.Add(list(list("x" = OA.x, "y" = OA.y, "colour" = "#eb9534", "name" = "[(OA.scanned) ? OA.name : "anomaly"]", opacity=showAnomalies*0.01, alignment = "uncharted")))
-	for(var/obj/structure/overmap/OM in GLOB.overmap_objects) //Iterate through overmaps in the world!
+	for(var/obj/structure/overmap/OM in linked?.current_system?.system_contents) //Iterate through overmaps in the world!
 		var/sensor_visible = (OM != linked && OM.faction != linked.faction) ? ((overmap_dist(linked, OM) > max(sensor_range * 2, OM.sensor_profile)) ? 0 : OM.is_sensor_visible(linked)) : SENSOR_VISIBILITY_FULL //You can always see your own ship, or allied, cloaked ships.
 		if(OM.z == linked.z && sensor_visible >= SENSOR_VISIBILITY_FAINT)
 			var/inRange = (overmap_dist(linked, OM) <= max(sensor_range,OM.sensor_profile)) || OM.faction == linked.faction	//Allies broadcast encrypted IFF so we can see them anywhere.

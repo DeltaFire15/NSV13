@@ -62,6 +62,8 @@ Adding tasks is easy! Just define a datum for it.
 	var/maximum_random_move_delay = 10 MINUTES
 	var/combat_move_delay = 10 MINUTES
 
+	var/fleet_flags = NONE
+
 	var/list/shared_targets = list()
 
 /datum/fleet/proc/start_reporting(target, reporter)
@@ -231,11 +233,15 @@ Adding tasks is easy! Just define a datum for it.
 			return FALSE
 
 	current_system.fleets -= src
-	if(current_system.fleets?.len)
-		var/datum/fleet/F = pick(current_system.fleets)
+	var/list/present_fleets = current_system.fleets.Copy()
+	for(var/datum/fleet/F as anything in present_fleets)
+		if(CHECK_BITFIELD(F.fleet_flags, FLEET_NO_OCCUPATION))
+			present_fleets -= F
+	if(present_fleets.len)
+		var/datum/fleet/F = pick(present_fleets)
 		current_system.alignment = F.alignment
 		current_system.mission_sector = FALSE
-		for(var/datum/fleet/FF in current_system.fleets)
+		for(var/datum/fleet/FF in present_fleets)
 			if(FF.alignment != current_system.owner && !FF.federation_check())
 				current_system.mission_sector = TRUE
 	else
@@ -247,7 +253,8 @@ Adding tasks is easy! Just define a datum for it.
 	target.fleets += src
 	shared_targets = list() // We just got here and don't know where anything is
 	current_system = target
-	target.alignment = alignment //We're occupying it
+	if(!CHECK_BITFIELD(fleet_flags, FLEET_NO_OCCUPATION))
+		target.alignment = alignment //We're occupying it
 	if(target.fleets?.len)
 		for(var/datum/fleet/F as() in target.fleets)
 			if(alignment != target.owner && !federation_check(target))
@@ -308,11 +315,15 @@ Adding tasks is easy! Just define a datum for it.
 	else
 		mini_announce(message, "White Rapids Fleet Command")
 	current_system.fleets -= src
-	if(current_system.fleets && current_system.fleets.len)
-		var/datum/fleet/F = pick(current_system.fleets)
+	var/list/present_fleets = current_system.fleets.Copy()
+	for(var/datum/fleet/F as anything in present_fleets)
+		if(CHECK_BITFIELD(F.fleet_flags, FLEET_NO_OCCUPATION))
+			present_fleets -= F
+	if(present_fleets && present_fleets.len)
+		var/datum/fleet/F = pick(present_fleets)
 		current_system.alignment = F.alignment
 		current_system.mission_sector = FALSE
-		for(var/datum/fleet/FF in current_system.fleets)
+		for(var/datum/fleet/FF in present_fleets)
 			if(FF.alignment != current_system.owner && !federation_check())
 				current_system.mission_sector = TRUE
 	else
@@ -1044,6 +1055,21 @@ Adding tasks is easy! Just define a datum for it.
 			hunted_ship = source
 			goal_system = null
 
+/datum/fleet/undefined
+	name = "ERR - IFF NULLREF"
+	fighter_types = list() //U-WIP
+	destroyer_types = list() //U-WIP
+	battleship_types = list() //U-WIP
+	supply_types = list() //U-WIP
+	alignment = "4442A"
+	faction_id = null
+	hide_movements = TRUE
+	taunts = list("C42560CD02E7A077EB2833EE1D202660CF504D7", "562DC933064A8B1CD76FD7015180C006E6F", "C6F8FF4D50A304C064D1EC303F73A02AAC")
+	greetings = list("1B41017B3A085A440C5A18D5A0A4A401967C94949")
+	size = FLEET_DIFFICULTY_VERY_HARD
+	allow_difficulty_scaling = FALSE
+	fleet_flags = FLEET_NO_DICECOMBAT | FLEET_NO_OCCUPATION
+
 /datum/fleet/proc/federation_check(checked = current_system) //Lazy way to check if you're in the federation; for alignments.
 	if(istype(checked, /datum/star_system))
 		var/datum/star_system/S = checked
@@ -1081,9 +1107,10 @@ Adding tasks is easy! Just define a datum for it.
 	if(SSovermap_mode && threat_elevation_allowed)
 		applied_size += round(SSovermap_mode.threat_elevation / TE_POINTS_PER_FLEET_SIZE)	//Threat level modifies danger
 	if(current_system)
-		current_system.alignment = alignment
-		if(current_system.alignment != current_system.owner && !federation_check())
-			current_system.mission_sector = TRUE
+		if(!CHECK_BITFIELD(fleet_flags, FLEET_NO_OCCUPATION))
+			current_system.alignment = alignment
+			if(current_system.alignment != current_system.owner && !federation_check())
+				current_system.mission_sector = TRUE
 		assemble(current_system)
 	addtimer(CALLBACK(src, .proc/move), initial_move_delay)
 
@@ -1122,7 +1149,8 @@ Adding tasks is easy! Just define a datum for it.
 		return
 	if(instantiated)
 		return
-	SS.alignment = alignment
+	if(!CHECK_BITFIELD(fleet_flags, FLEET_NO_OCCUPATION))
+		SS.alignment = alignment
 	if(SS.alignment != SS.owner && !federation_check(SS))
 		SS.mission_sector = TRUE
 	current_system = SS	//It should already have a system but lets be safe and move it.
@@ -1190,6 +1218,8 @@ Adding tasks is easy! Just define a datum for it.
 	var/list/L = OM.fleet.taskforces["supply"] //I don't know why we have to do it this way, but dreamchecker is forcing us to.
 	if(!L.len)
 		return 0 //Can't resupply if there's no supply station/ship. Carry on fighting!
+	if(CHECK_BITFIELD(OM.ai_flags, AI_FLAG_NO_RESUPPLY))
+		return 0
 	if(CHECK_BITFIELD(OM.ai_flags, AI_FLAG_SUPPLY) && L.len == 1)	//We are the only supply ship left, no resupplying for us.
 		return 0
 	if(OM.obj_integrity < OM.max_integrity/3)
@@ -1593,7 +1623,8 @@ Seek a ship thich we'll station ourselves around
 	var/obj/structure/overmap/defense_target = null
 	var/ai_can_launch_fighters = FALSE //AI variable. Allows your ai ships to spawn fighter craft
 	var/list/ai_fighter_type = list()
-	var/ai_flags = AI_FLAG_DESTROYER
+	var/ai_flags = AI_FLAG_DESTROYER //AI behavior flags
+	var/ship_flags = NONE //General ship flags
 
 	var/list/holding_cargo = list() // list of objective datums. This station has cargo to deliver to the players as part of a courier objective
 	var/list/expecting_cargo = list() // list of objective datums. This station is expecting cargo delivered to them by the players as a part of a courier objective
@@ -1828,7 +1859,7 @@ Seek a ship thich we'll station ourselves around
 		gunner = pilot
 	if(last_target) //Have we got a target?
 		var/obj/structure/overmap/OM = last_target
-		if(overmap_dist(last_target, src) > max(max_tracking_range, OM.sensor_profile) || istype(OM) && OM.is_sensor_visible(src) < SENSOR_VISIBILITY_TARGETABLE) //Out of range - Give up the chase
+		if(overmap_dist(last_target, src) > max(max_tracking_range, OM.sensor_profile) || istype(OM) && OM.is_sensor_visible(src) < SENSOR_VISIBILITY_TARGETABLE || CHECK_BITFIELD(OM.ship_flags, SHIP_AI_UNTARGETTABLE)) //Out of range - Give up the chase
 			if(istype(OM) && CHECK_BITFIELD(ai_flags, AI_FLAG_DESTROYER) && OM.z == z)
 				patrol_target = get_turf(last_target)	//Destroyers are wary and will actively investigate when their target exits their sensor range. You might be able to use this to your advantage though!
 			if(fleet)
@@ -1850,6 +1881,8 @@ Seek a ship thich we'll station ourselves around
 		var/list/maybe_resupply = current_system.system_contents.Copy()
 		shuffle(maybe_resupply)	//Lets not have a fixed resupply list that can cause things to be wonky.
 		for(var/obj/structure/overmap/OM in maybe_resupply)
+			if(CHECK_BITFIELD(OM.ai_flags, AI_FLAG_NO_RESUPPLY))
+				continue
 			if(OM.z != z || OM == src || OM.faction != faction || overmap_dist(src, OM) > resupply_range) //No self healing
 				continue
 			if(OM.obj_integrity >= OM.max_integrity && OM.shots_left >= initial(OM.shots_left) && OM.missiles >= initial(OM.missiles) && OM.torpedoes >= initial(OM.torpedoes)) //No need to resupply this ship at all.
@@ -2040,7 +2073,7 @@ Seek a ship thich we'll station ourselves around
 	for(var/obj/structure/overmap/ship in shiplist)
 		if(warcrime_blacklist[ship.type])
 			continue
-		if(!ship || QDELETED(ship) || ship == src || overmap_dist(src, ship) > max(max_tracking_range, ship.sensor_profile) || ship.faction == faction || ship.z != z || ship.is_sensor_visible(src) < SENSOR_VISIBILITY_TARGETABLE)
+		if(!ship || QDELETED(ship) || ship == src || overmap_dist(src, ship) > max(max_tracking_range, ship.sensor_profile) || ship.faction == faction || ship.z != z || ship.is_sensor_visible(src) < SENSOR_VISIBILITY_TARGETABLE || CHECK_BITFIELD(ship.ship_flags, SHIP_AI_UNTARGETTABLE))
 			continue
 		if ( ship.essential )
 			continue
