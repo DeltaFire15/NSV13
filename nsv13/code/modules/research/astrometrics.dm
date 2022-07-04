@@ -53,23 +53,29 @@ Clean override of the navigation computer to provide scan functionality.
 	else
 		data["scan_target"] = null
 	if(screen == 2) // Here's where the magic happens.
-		data["star_id"] = "\ref[selected_system]"
-		var/list/syst = selected_system.system_type
-		// data["star_name"] = syst[ "tag" ]
-		data["alignment"] = capitalize(selected_system.alignment)
-		data["scanned"] = FALSE
 		if(info["current_system"])
 			var/datum/star_system/curr = info["current_system"]
 			data["star_dist"] = curr.dist(selected_system)
-		data["anomalies"] = selected_system.get_info()
-		if(LAZYFIND(scanned, selected_system.name)) //If we've scanned this one before, get me the list of its anomalies.
-			data["scanned"] = TRUE
-		if ( data["scanned"] )
-			data["system_type"] = syst ? syst[ "label" ] : "ERROR"	//the list /should/ always be initialized when players get to press the button, but alas never trust it.
+		data["star_id"] = "\ref[selected_system]"
+		if(!CHECK_BITFIELD(selected_system.system_type, STARSYSTEM_UNDEFINED))
+			var/list/syst = selected_system.system_type
+			// data["star_name"] = syst[ "tag" ]
+			data["alignment"] = capitalize(selected_system.alignment)
+			data["scanned"] = FALSE
+			data["anomalies"] = selected_system.get_info()
+			if(LAZYFIND(scanned, selected_system.name)) //If we've scanned this one before, get me the list of its anomalies.
+				data["scanned"] = TRUE
+			if ( data["scanned"] )
+				data["system_type"] = syst ? syst[ "label" ] : "ERROR"	//the list /should/ always be initialized when players get to press the button, but alas never trust it.
+			else
+				data["system_type"] = "Unknown (not scanned)"
 		else
-			data["system_type"] = "Unknown (not scanned)"
+			data["alignment"] = "Undefined"
+			data["scanned"] = "Undefined"
+			data["anomalies"] = list()	//Maybe replace with a list of anomalies that are just unknown - U-WIP
+			data["system_type"] = "Undefined"
 
-	data["can_scan"] = is_in_range(current_system, selected_system)
+	data["can_scan"] = (is_in_range(current_system, selected_system) && !CHECK_BITFIELD(selected_system.system_traits, STARSYSTEM_UNDEFINED))
 	data["can_cancel"] = (scan_target) ? TRUE : FALSE
 	data["scan_progress"] = scan_progress
 	data["scan_goal"] = scan_goal

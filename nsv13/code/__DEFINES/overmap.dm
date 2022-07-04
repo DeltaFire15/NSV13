@@ -89,3 +89,5 @@ GLOBAL_LIST_INIT(overmap_impact_sounds, list('nsv13/sound/effects/ship/freespace
 #define INTERIOR_READY 2
 #define INTERIOR_DELETING 3
 #define INTERIOR_DELETED 4
+
+#define UNDEFINED_EVENT_PROB 6

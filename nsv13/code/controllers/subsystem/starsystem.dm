@@ -1041,6 +1041,7 @@ Random starsystem. Excluded from starmap saving, as they're generated at init.
 	hidden = TRUE
 	alignment = "uncharted"
 	owner = "uncharted" //Currently this will say occupied whenever any fleet enters, change this.
+	system_traits = STARSYSTEM_BADLANDS_CLUSTER
 
 //The badlands generates a rat run of random systems around it, so keep it well clear of civilisation
 /datum/star_system/brasil
@@ -1255,6 +1256,46 @@ Random starsystem. Excluded from starmap saving, as they're generated at init.
 	var/time = (REALTIMEOFDAY - start_timeofday) / 10
 	//There we go.
 	message_admins("Badlands has been generated. T:[time]s CFS:[toocloseconflict]|[ir_rub]|[ir_othershit] Rubiconnector: [rubiconnector], Inroute system is [inroute]. Fun fact, jump lanes have been relaxed [relax] times by the algorithm and [random_jumpline_count] random connections have been created!")
+
+	if(prob(UNDEFINED_EVENT_PROB)) //Sometimes, space is not quite as empty as it may seem...
+		undefined_event()
+
+
+/datum/star_system/proc/undefined_event()
+	var/list/system_list = SSstar_system.systems.Copy()
+	var/list/processing_systems = list()
+	var/list/sorted_systems = list()
+	var/datum/star_system/starting_system = SSstar_system.system_by_id("Badlands")
+	if(!starting_system)
+		CRASH("No badlands found.")
+	processing_systems.Add(starting_system)
+	sorted_systems.Add(starting_system)
+	system_list.Remove(starting_system)
+	while(length(processing_systems))	//basically, we are sorting systems to have the furthest away systems at the end.
+		var/datum/star_system/current_system = processing_systems[1]
+		for(var/connection as anything in current_system.adjacency_list)
+			if(!current_system.wormhole_connections.Find(connection))	//Ignore wormhole connections
+				var/datum/star_system/connection_target = SSstar_system.system_by_id(connection)
+				if(system_list.Find(connection_target))
+					processing_systems.Add(connection_target)
+					sorted_systems.Add(connection_target)
+					system_list.Remove(connection_target)
+		processing_systems.Cut(1, 2)
+	var/datum/star_system/system_target
+	for(var/i = sorted_systems.len; i > 0; i--)
+		var/datum/star_system/system_candidate = sorted_systems[i]
+		if(!CHECK_BITFIELD(system_candidate.system_traits, STARSYSTEM_BADLANDS_CLUSTER))
+			continue
+		if("Rubicon" in system_candidate.adjacency_list)
+			continue
+		system_target = system_candidate
+		break
+	if(!system_target)
+		CRASH("No valid system found for \[Undefined\] spawn")
+	//We found our system we want. Time for it to be.. special.
+	system_target.system_traits |= STARSYSTEM_NO_ANOMALIES | STARSYSTEM_NO_WORMHOLE | STARSYSTEM_NO_ASTEROIDS | STARSYSTEM_NO_MISSIONS | STARSYSTEM_FLEETS_AVOID | STARSYSTEM_UNDEFINED
+	system_target.system_type = list("tag" = "debris", "label" = "Large Debris Field")
+	
 
 #undef NONRELAXATION_PENALTY
 #undef MAX_RANDOM_CONNECTION_LENGTH

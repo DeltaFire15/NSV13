@@ -21,6 +21,9 @@
 	if((!alignments || !alignments.len) && alignment_list_type == ALIGNMENT_WHITELIST)
 		return FALSE	//You called whitelisted mode with no system alignments allowed, what did you expect?
 
+	if(CHECK_BITFIELD(target_system.system_traits, STARSYSTEM_FLEETS_AVOID))
+		return FALSE
+
 	var/list/all_systems = SSstar_system.systems.Copy()	//Make a new list from these so we don't fuck up the all_systems list.
 
 	var/systems[all_systems.len]
@@ -71,6 +74,8 @@
 			if(!wormholes_allowed && cur_sys.wormhole_connections.Find(adj))
 				continue	//No using wormholes if they're forbidden to you, bad!
 			if(adj_sys.hidden && !allow_hidden_systems)
+				continue
+			if(CHECK_BITFIELD(adj_sys.system_traits, STARSYSTEM_FLEETS_AVOID))
 				continue
 
 			if(distances[cur_key] + cur_sys.dist(adj_sys) < distances[adj_key])

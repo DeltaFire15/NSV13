@@ -178,6 +178,10 @@ GLOBAL_LIST_INIT(bitflags, list(1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 204
 #define STARSYSTEM_NO_ASTEROIDS (1<<1)	//Prevents Asteroids Spawning
 #define STARSYSTEM_NO_WORMHOLE (1<<2)		//Prevents Incoming Wormholes
 #define STARSYSTEM_END_ON_ENTER (1<<3)  //End the round after entering this system (Outpost 45)
+#define STARSYSTEM_BADLANDS_CLUSTER (1<<4) //Is a system in the badlands cluster aka Brazil
+#define STARSYSTEM_NO_MISSIONS (1<<5) //Systems with this trait will never be mission targets
+#define STARSYSTEM_FLEETS_AVOID (1<<6) //Fleets will never visit systems with this trait unless by adminbuse or special conditions
+#define STARSYSTEM_UNDEFINED (1<<7) //UNDEFINED
 
 //Fleet flags
 #define FLEET_NO_DICECOMBAT (1<<0) //Does not fight in dice battles, neither as target nor as firer

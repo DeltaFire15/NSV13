@@ -183,6 +183,8 @@ Adding tasks is easy! Just define a datum for it.
 				var/datum/star_system/sys = SSstar_system.system_by_id(_name)
 				if(sys.hidden)
 					continue
+				if(CHECK_BITFIELD(sys.system_traits, STARSYSTEM_FLEETS_AVOID))
+					continue
 				switch(fleet_trait)
 					if(FLEET_TRAIT_DEFENSE)
 						return FALSE //These boss fleets do not move.
