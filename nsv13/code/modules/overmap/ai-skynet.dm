@@ -1647,6 +1647,13 @@ Seek a ship thich we'll station ourselves around
 	var/reloading_torpedoes = FALSE
 	var/reloading_missiles = FALSE
 	var/static/list/warcrime_blacklist = typecacheof(list(/obj/structure/overmap/small_craft/escapepod, /obj/structure/overmap/asteroid))//Ok. I'm not THAT mean...yet. (Hello karmic, it's me karmic 2)
+		
+	///Simillar to nomal subsystems, although these tend to be common across most ships. They may still vary nonetheless. Functionally the same to normal subsystems although usually more of a "debuff if disabled". Currently, not yet in use as opposed to secondary systems.
+	var/list/core_subsystem_paths = list()
+	///Which subsystems does a ship contain? Paths go in here, later initialized into actual objects into the subsystems list below.
+	var/list/subsystem_paths = list()
+	///Contains the actual instanced subsystem references of a ship.
+	var/list/subsystems = list()
 
 	//Fleet organisation
 	var/shots_left = 15 //Number of arbitrary shots an AI can fire with its heavy weapons before it has to resupply with a supply ship.

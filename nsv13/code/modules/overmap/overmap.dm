@@ -50,8 +50,10 @@
 	var/max_armour_plates = 0
 	var/list/dent_decals = list() //Ships get visibly damaged as they get shot
 	var/damage_states = FALSE //Did you sprite damage states for this ship? If yes, set this to true
-	var/disruption = 0	//Causes bad effects proportional to how significant. Most significant for AI ships (or fighters) hit by disruption weapons.
-
+	///Causes bad effects proportional to how significant. Most significant for AI ships (or fighters) hit by disruption weapons.
+	var/disruption = 0	
+	///Causes bad effects related to own sensor system. Only affects player ships for the moment.
+	var/sensor_jamming = 0
 	var/use_armour_quadrants = FALSE //Does the object use the armour quadrant system?
 	var/max_armour = 0 //Max armour amount per quad
 	var/current_armour = 0 //Per quad
@@ -281,6 +283,11 @@ Proc to spool up a new Z-level for a player ship and assign it a treadmill.
 	for(var/atype in subtypesof(/datum/ams_mode))
 		ams_modes.Add(new atype)
 
+	for(var/subsystem_type in (core_subsystem_paths + subsystem_paths))
+		var/datum/ship_subsystem/subsystem = new subsystem_type()
+		subsystem.owner = src
+		subsystems += subsystem
+
 	if(obj_integrity != max_integrity)
 		message_admins("Failsafe triggered: [src] Initialized with integrity of [obj_integrity], but max integrity of [max_integrity]. Setting integrity to max integrity to prevent issues.")
 		obj_integrity = max_integrity	//Failsafe
@@ -451,6 +458,10 @@ Proc to spool up a new Z-level for a player ship and assign it a treadmill.
 
 	if(fleet)
 		fleet.stop_reporting_all(src)
+
+	for(var/datum/ship_subsystem/subsystem as anything in subsystems)
+		subsystem.owner = null
+		qdel(subsystem)
 
 	STOP_PROCESSING(SSphysics_processing, src)
 	for(var/mob/living/M in operators)

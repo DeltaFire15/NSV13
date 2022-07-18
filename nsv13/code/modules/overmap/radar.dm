@@ -35,6 +35,8 @@
 	var/obj/item/supplypod_beacon/beacon
 	var/sensor_mode = SENSOR_MODE_PASSIVE
 	var/radar_delay = MIN_RADAR_DELAY
+	var/list/cached_ghosts = list()
+	var/next_ghost_reset = 0
 
 /obj/machinery/computer/ship/dradis/proc/can_radar_pulse()
 	var/obj/structure/overmap/OM = get_overmap()
@@ -396,7 +398,28 @@ Called by add_sensor_profile_penalty if remove_in is used.
 			else
 				filterType *= 0.01 //Scale the number down to be an opacity figure for CSS
 			filterType = CLAMP(filterType, 0, 1)
-			blips[++blips.len] = list("x" = OM.x, "y" = OM.y, "colour" = thecolour, "name"=thename, opacity=filterType ,alignment = thefaction, "id"="\ref[OM]") //So now make a 2-d array that TGUI can iterate through. This is just a list within a list.
+			blips[++blips.len] = list("x" = OM.x, "y" = OM.y, "colour" = thecolour, "name"=thename, "opacity"=filterType ,"alignment" = thefaction, "id"="\ref[OM]") //So now make a 2-d array that TGUI can iterate through. This is just a list within a list.
+	if(linked?.sensor_jamming)	//This is where the fun begins
+		data["jammed"] = TRUE
+		if(next_ghost_reset <= world.time)
+			cached_ghosts = list()
+			next_ghost_reset = world.time + rand(SENSOR_GHOST_MIN_INTERVAL, SENSOR_GHOST_MAX_INTERVAL)
+			var/ghost_count = rand(SENSOR_GHOST_MIN_COUNT, SENSOR_GHOST_MAX_COUNT)
+			for(var/counter = 1; counter <= ghost_count; counter++)
+				var/fake_colour = pick("#FF0000", "#a66300", "#32CD32", "#00FFFF", "#cc66ff", "#ffcc00")
+				var/fake_opacity = prob(50) ? 1 : (rand(20, 100) * 0.01)
+				var/fake_name = "UNKNOWN"
+				var/fake_x = rand(15, world.maxx - 15)
+				var/fake_y = rand(15, world.maxy - 15)
+				var/fake_alignment = pick("nanotrasen", "syndicate", "unaligned")
+				var/fake_id = "GHOST_[counter]"
+				//R-WIP - imrpove and make sure the fake id / "jammed" data are used correctly to present errors due to nonexistant ships (ironic) - also make sure opacity & alignment changes don't break anything (from no " to adding")
+				cached_ghosts += list("x" = fake_x, "y" = fake_y, "colour" = fake_colour, "name" = fake_name, "opacity" = fake_opacity, "alignment" = fake_alignment, "id" = fake_id)
+		for(var/list/fake_ghost_data in cached_ghosts)
+			blips[++blips.len] = fake_ghost_data.Copy()
+			ship_count++
+	else
+		data["jammed"] = FALSE
 	if(ship_count > last_ship_count) //Play a tone if ship count changes
 		var/delta = ship_count - last_ship_count
 		last_ship_count = ship_count

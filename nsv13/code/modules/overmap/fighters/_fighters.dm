@@ -678,7 +678,7 @@ Been a mess since 2018, we'll fix it someday (probably)
 	return ..()
 
 
-/obj/structure/overmap/small_craft/take_damage(damage_amount, damage_type, damage_flag, sound_effect)
+/obj/structure/overmap/small_craft/take_damage(damage_amount, damage_type, damage_flag, sound_effect, attack_dir, armour_penetration, ignores_shields)
 	var/obj/item/fighter_component/armour_plating/A = loadout.get_slot(HARDPOINT_SLOT_ARMOUR)
 	if(A && istype(A))
 		A.take_damage(damage_amount, damage_type, damage_flag, sound_effect)

@@ -5,3 +5,12 @@
 #define MASS_LARGE 7 //20-40 Players - Medium Capital Ships
 #define MASS_TITAN 150 //40+ Players - Large Capital Ships
 #define MASS_IMMOBILE 200 //Things that should not be moving. See: stations
+
+//Some defines for ship sensor jamming
+#define SENSOR_GHOST_MIN_INTERVAL 2 SECONDS //Min time between sensor ghost refresh
+#define SENSOR_GHOST_MAX_INTERVAL 6 SECONDS //Max time between sensor ghost refresh
+#define SENSOR_GHOST_MIN_COUNT 3 //Minimum ghost count generated
+#define SENSOR_GHOST_MAX_COUNT 8 //Maximum ghost count generated
+
+//Defines for ship subsystems
+#define SHSUBSYS_BASE_MALF_DISABLE_TIME 2 //Subsystem activation ticks ship subsystem generally get disabled on malfunction

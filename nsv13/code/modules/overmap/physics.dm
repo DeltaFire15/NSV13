@@ -121,6 +121,9 @@ This proc is to be used when someone gets stuck in an overmap ship, gauss, WHATE
 			last_critprocess = world.time
 			handle_critical_failure_part_1()
 	disruption = max(0, disruption - 1)
+	sensor_jamming = max(0, sensor_jamming - 1)
+	for(var/datum/ship_subsystem/subsystem as anything in subsystems)
+		subsystem.process_tick()
 	ai_process()
 	if(!cabin_air)
 		return

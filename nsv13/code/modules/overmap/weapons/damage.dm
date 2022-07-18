@@ -69,10 +69,11 @@ Bullet reactions
 /obj/structure/overmap/small_craft/relay_damage(proj_type)
 	return
 
-/obj/structure/overmap/take_damage(damage_amount, damage_type = BRUTE, damage_flag = 0, sound_effect = 1)
+///Proc is overloaded with ignores_shields which is not present in the base proc args - do not call ignores_shields as named arg unless type safe.
+/obj/structure/overmap/take_damage(damage_amount, damage_type = BRUTE, damage_flag = 0, sound_effect = 1, attack_dir, armour_penetration, ignores_shields)
 	var/blocked = FALSE
 	var/damage_sound = pick(GLOB.overmap_impact_sounds)
-	if(shields && shields.absorb_hit(damage_amount))
+	if(!ignores_shields && shields && shields.absorb_hit(damage_amount))
 		blocked = TRUE
 		damage_sound = pick('nsv13/sound/effects/ship/damage/shield_hit.ogg', 'nsv13/sound/effects/ship/damage/shield_hit2.ogg')
 		if(!impact_sound_cooldown)
@@ -88,7 +89,7 @@ Bullet reactions
 	SEND_SIGNAL(src, COMSIG_ATOM_DAMAGE_ACT, damage_amount) //Trigger to update our list of armour plates without making the server cry.
 	if(CHECK_BITFIELD(overmap_deletion_traits, DAMAGE_STARTS_COUNTDOWN) && !(CHECK_BITFIELD(overmap_deletion_traits, DAMAGE_DELETES_UNOCCUPIED) && !has_occupants())) //Code for handling "superstructure crit" countdown
 		if(obj_integrity <= damage_amount || structure_crit) //Superstructure crit! They would explode otherwise, unable to withstand the hit.
-			obj_integrity = 10 //Automatically set them to 10 HP, so that the hit isn't totally ignored. Say if we have a nuke dealing 1800 DMG (the ship's full health) this stops them from not taking damage from it, as it's more DMG than we can handle.
+			obj_integrity = max(10, obj_integrity - damage_amount) //Sets them to 10hp minimum, however does not immediately return them to 10 if the hull is hit once in crit. Crit hits do ignore any inherent armor though. 
 			handle_crit(damage_amount)
 			return FALSE
 	update_icon()
