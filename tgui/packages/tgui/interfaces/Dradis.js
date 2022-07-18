@@ -23,7 +23,7 @@ export const DradisContent = (props, context) => {
       <li key={ship.id}>
         {!!ship.name && (
           <Button unselectable="on" style={markerStyle} className={markerType}
-            content="" onClick={() => act('hail', { target: ship.id })}>
+            content="" onClick={() => act('hail', { target: ship.id, jammed: data.jammed })}>
             <span class="star_label">
               <p>{ship.name}</p>
             </span>

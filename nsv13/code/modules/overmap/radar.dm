@@ -37,6 +37,7 @@
 	var/radar_delay = MIN_RADAR_DELAY
 	var/list/cached_ghosts = list()
 	var/next_ghost_reset = 0
+	var/next_ghost_move = 0
 
 /obj/machinery/computer/ship/dradis/proc/can_radar_pulse()
 	var/obj/structure/overmap/OM = get_overmap()
@@ -266,6 +267,8 @@ Called by add_sensor_profile_penalty if remove_in is used.
 				return
 			zoom_factor = clamp(params["zoom"] / 100, zoom_factor_min, zoom_factor_max)
 		if("hail")
+			if(locate(params["jammed"]))
+				return
 			var/obj/structure/overmap/target = locate(params["target"])
 			if(!target) //Anomalies don't count.
 				return
@@ -396,17 +399,35 @@ Called by add_sensor_profile_penalty if remove_in is used.
 		if(next_ghost_reset <= world.time)
 			cached_ghosts = list()
 			next_ghost_reset = world.time + rand(SENSOR_GHOST_MIN_INTERVAL, SENSOR_GHOST_MAX_INTERVAL)
+			next_ghost_move = world.time + 8
 			var/ghost_count = rand(SENSOR_GHOST_MIN_COUNT, SENSOR_GHOST_MAX_COUNT)
 			for(var/counter = 1; counter <= ghost_count; counter++)
 				var/fake_colour = pick("#FF0000", "#a66300", "#32CD32", "#00FFFF", "#cc66ff", "#ffcc00")
-				var/fake_opacity = prob(50) ? 1 : (rand(20, 100) * 0.01)
+				var/fake_opacity = prob(50) ? 1 : (rand(40, 100) * 0.01)
 				var/fake_name = "UNKNOWN"
 				var/fake_x = rand(15, world.maxx - 15)
 				var/fake_y = rand(15, world.maxy - 15)
 				var/fake_alignment = pick("nanotrasen", "syndicate", "unaligned")
 				var/fake_id = "GHOST_[counter]"
 				//R-WIP - imrpove and make sure the fake id / "jammed" data are used correctly to present errors due to nonexistant ships (ironic) - also make sure opacity & alignment changes don't break anything (from no " to adding")
-				cached_ghosts += list("x" = fake_x, "y" = fake_y, "colour" = fake_colour, "name" = fake_name, "opacity" = fake_opacity, "alignment" = fake_alignment, "id" = fake_id)
+				cached_ghosts[++cached_ghosts.len] += list("x" = fake_x, "y" = fake_y, "colour" = fake_colour, "name" = fake_name, "opacity" = fake_opacity, "alignment" = fake_alignment, "id" = fake_id)
+		else if(next_ghost_move <= world.time)
+			next_ghost_move = world.time + 8 //Magic number in this case is "slightly less than the tgui subsystem wait"
+			for(var/list/fake_ghost_data in cached_ghosts)
+				var/fake_x = fake_ghost_data["x"]
+				var/fake_y = fake_ghost_data["y"]
+				var/fake_new_x = fake_x + rand(-5, 5)
+				var/fake_new_y = fake_y + rand(-5, 5)
+				if(fake_new_x > 255)
+					fake_new_x -= 255
+				else if(fake_new_x < 1)
+					fake_new_x += 255
+				if(fake_new_y > 255)
+					fake_new_y -= 255
+				else if(fake_new_y < 1)
+					fake_new_y += 255
+				fake_ghost_data["x"] = fake_new_x
+				fake_ghost_data["y"] = fake_new_y
 		for(var/list/fake_ghost_data in cached_ghosts)
 			blips[++blips.len] = fake_ghost_data.Copy()
 			ship_count++
