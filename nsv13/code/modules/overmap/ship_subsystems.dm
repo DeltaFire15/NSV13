@@ -113,7 +113,7 @@ Gets called by events which intend to damage one or multiple subsystems. Trigger
 Jamming subsystem - Applies sensor jamming to all non-same-faction ships in system, caps at 20 ship ticks queued.
 **/
 /datum/ship_subsystem/heavy_jammer
-    name = "Heavy Sensor Jammer" //R-WIP - add this to some [undefined] vessels
+    name = "Heavy Sensor Jammer" //U-WIP - add this to some [undefined] vessels
     tick_delay = 2
 
 /datum/ship_subsystem/heavy_jammer/can_activate()
@@ -131,7 +131,7 @@ Jamming subsystem - Applies sensor jamming to all non-same-faction ships in syst
     for(var/obj/structure/overmap/jamming_target in owner.current_system.system_contents)
         if(jamming_target.faction == owner.faction)
             continue
-        jamming_target.sensor_jamming = min(20, jamming_target.sensor_jamming + 5)
+        jamming_target.sensor_jamming = min(SHSUBSYS_JAMMER_BUILDUP_CAP, jamming_target.sensor_jamming + 5)
     return TRUE
 
 /**
@@ -139,7 +139,7 @@ Munitions fabricator with a twist - converts hull matter into ammo - Yes this ca
 * * Rearm priority: Heavy - Torpedoes - Missiles - Light
 **/
 /datum/ship_subsystem/unsafe_ammo_replicator
-    name = "Aggressive Munitions Replicator" //R-WIP - add this to [undefined] fighters
+    name = "Aggressive Munitions Replicator" //U-WIP - add this to [undefined] fighters
     tick_delay = 4
     ///Eats this much of the hull in percent per resupply
     var/hull_percent_per_resupply = 10
@@ -186,7 +186,7 @@ The much safer friend of the above munitions fabricator - Slowly fabricates ammo
 * * Rearm priority: Torpedoes - Missiles - Heavy - Light
 **/
 /datum/ship_subsystem/ammunition_forge
-    name = "Automated Munitions Forge" //R-WIP - add this to [undefined] capital ships
+    name = "Automated Munitions Forge" //U-WIP - add this to [undefined] capital ships
     tick_delay = 9  //Preetty slow
 
 /datum/ship_subsystem/ammunition_forge/can_activate()
@@ -208,10 +208,10 @@ The much safer friend of the above munitions fabricator - Slowly fabricates ammo
     if(!.)
         return
     //Basically, how likely something is to be printed is determined by how important it is (the multiplier) and how low the percentage of ammo left is
-    var/torp_weight = initial(owner.torpedoes) > 0 ? round(8 * (owner.torpedoes / initial(owner.torpedoes)) * 100) : 0
-    var/missile_weight = initial(owner.missiles) > 0 ? round(6 * (owner.missiles / initial(owner.missiles)) * 100) : 0
-    var/heavy_ammo_weight = initial(owner.shots_left) > 0 ? round(4 * (owner.shots_left / initial(owner.shots_left)) * 100) : 0
-    var/light_ammo_weight = initial(owner.light_shots_left) > 0 ? round(2 * (owner.light_shots_left / initial(owner.light_shots_left)) * 100) : 0
+    var/torp_weight = initial(owner.torpedoes) > 0 ? round(8 * (1 - owner.torpedoes / initial(owner.torpedoes)) * 100) : 0
+    var/missile_weight = initial(owner.missiles) > 0 ? round(6 * (1 - owner.missiles / initial(owner.missiles)) * 100) : 0
+    var/heavy_ammo_weight = initial(owner.shots_left) > 0 ? round(4 * (1 - owner.shots_left / initial(owner.shots_left)) * 100) : 0
+    var/light_ammo_weight = initial(owner.light_shots_left) > 0 ? round(2 * (1 - owner.light_shots_left / initial(owner.light_shots_left)) * 100) : 0
     var/list/weightlist = list("torpedoes" = torp_weight, "missiles" = missile_weight, "heavy_ammo" = heavy_ammo_weight, "light_ammo" = light_ammo_weight)
     var/fab_pick = pickweight(weightlist)
     switch(fab_pick)
@@ -233,7 +233,8 @@ The much safer friend of the above munitions fabricator - Slowly fabricates ammo
 Autorepair unit that repairs a ship's hull at reasonable pace - no effect on armor.
 **/
 /datum/ship_subsystem/autorepair_unit
-    name = "Automated Repair Unit" //R-WIP - add this to most [undefined] ships except fighters, maybe some important non-[undefined] too
+    name = "Automated Repair Unit" //U-WIP - add this to most [undefined] ships except fighters, maybe some important non-[undefined] too
+    tick_delay = 1
     var/repair_amount = 5
 
 /datum/ship_subsystem/autorepair_unit/can_activate()

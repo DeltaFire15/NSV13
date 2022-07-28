@@ -14,3 +14,4 @@
 
 //Defines for ship subsystems
 #define SHSUBSYS_BASE_MALF_DISABLE_TIME 2 //Subsystem activation ticks ship subsystem generally get disabled on malfunction
+#define SHSUBSYS_JAMMER_BUILDUP_CAP 20 //How many ticks of jamming a ship can have queued up due to a jammer subsystem

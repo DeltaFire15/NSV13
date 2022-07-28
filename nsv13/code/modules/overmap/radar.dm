@@ -360,6 +360,8 @@ Called by add_sensor_profile_penalty if remove_in is used.
 			var/inRange = (overmap_dist(linked, OM) <= max(sensor_range,OM.sensor_profile)) || OM.faction == linked.faction	//Allies broadcast encrypted IFF so we can see them anywhere.
 			var/thecolour = "#FFFFFF"
 			var/filterType = showEnemies
+			if(linked?.sensor_jamming && prob(70))
+				continue
 			if(istype(OM, /obj/structure/overmap/asteroid))
 				if(!show_asteroids)
 					continue
@@ -409,7 +411,7 @@ Called by add_sensor_profile_penalty if remove_in is used.
 				var/fake_y = rand(15, world.maxy - 15)
 				var/fake_alignment = pick("nanotrasen", "syndicate", "unaligned")
 				var/fake_id = "GHOST_[counter]"
-				//R-WIP - imrpove and make sure the fake id / "jammed" data are used correctly to present errors due to nonexistant ships (ironic) - also make sure opacity & alignment changes don't break anything (from no " to adding")
+				//U-WIP - improve and make sure the fake id / "jammed" data are used correctly to prevent errors due to nonexistant ships (ironic) - also make sure opacity & alignment changes don't break anything (from no " to adding")
 				cached_ghosts[++cached_ghosts.len] += list("x" = fake_x, "y" = fake_y, "colour" = fake_colour, "name" = fake_name, "opacity" = fake_opacity, "alignment" = fake_alignment, "id" = fake_id)
 		else if(next_ghost_move <= world.time)
 			next_ghost_move = world.time + 8 //Magic number in this case is "slightly less than the tgui subsystem wait"

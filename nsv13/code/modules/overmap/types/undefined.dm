@@ -18,3 +18,4 @@
     integrity_failure = 200
     mass = MASS_TINY
     ai_flags = AI_FLAG_SWARMER | AI_FLAG_NO_RESUPPLY
+    subsystem_paths = list(/datum/ship_subsystem/unsafe_ammo_replicator)
