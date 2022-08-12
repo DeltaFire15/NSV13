@@ -298,9 +298,10 @@
 	name = "M14 VLS Tube (Circuitboard)"
 	build_path = /obj/machinery/ship_weapon/vls
 	req_components = list(
-		/obj/item/stack/sheet/mineral/titanium = 20,
-		/obj/item/stack/sheet/mineral/copper = 20,
-		/obj/item/stack/sheet/iron = 30,
+		/obj/item/stock_parts/manipulator/femto = 6,
+		/obj/item/stock_parts/matter_bin/bluespace = 2,
+		/obj/item/stock_parts/scanning_module= 4,
+		/obj/item/stock_parts/capacitor = 4,
 		/obj/item/stack/cable_coil = 10)
 	resistance_flags = INDESTRUCTIBLE | LAVA_PROOF | FIRE_PROOF | UNACIDABLE | ACID_PROOF | FREEZE_PROOF
 
