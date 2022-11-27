@@ -22,8 +22,26 @@
     obj_integrity = 300
     max_integrity = 300
     range = 255
+    ///How much power has this slug absorbed from HVRC rails.
     var/stored_power = 0
+    ///Has this left the muzzle? If not, very volatile movement.
     var/finished = FALSE
+    ///HVRC core of the cannon that fired this.
+    var/obj/machinery/hvrc/core/linked_hvrc_core
+    ///Did the firing cycle succeed?
+    var/fire_success = FALSE
+    ///What does this turn into on the overmap?
+    var/true_projectile_type = /obj/item/projectile/bullet/hvrc
+    ///What is the turf the overmap gunner's target was on?
+    var/turf/preserved_target_turf
+
+/obj/item/projectile/bullet/proto_hvrc/Destroy()
+    if(!fire_success && !QDELETED(linked_hvrc_core))
+        linked_hvrc_core.fail_firing_cycle(src)
+    return ..()
+
+/obj/item/projectile/bullet/proto_hvrc/proc/set_up(obj/machinery/hvrc/core/fired_from)
+    linked_hvrc_core = fired_from
 
 /obj/item/projectile/bullet/proto_hvrc/can_hit_target(atom/target, direct_target, ignore_loc, cross_failed)
     . = ..()
@@ -53,6 +71,12 @@
     if(!finished && !locate(/obj/machinery/hvrc) in newloc)
         detonate_proto_hvrc(stored_power)
         return
+    else if(x >= world.maxx - TRANSITIONEDGE - 3)
+        if(!QDELETED(linked_hvrc_core))
+            linked_hvrc_core.complete_firing_cycle(src)
+            fire_success = TRUE
+        qdel(src)
+        
 
 /obj/item/projectile/bullet/proto_hvrc/proc/detonate_proto_hvrc(power)
     stored_power *= 0.5

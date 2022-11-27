@@ -355,19 +355,19 @@
 	DELAY 80
 	SAY However, I'll be quite honessst I'm pretty sssure they aren't actually watching thessse prior to ssshipping anywaysss ssso have my opinion, 'sss long 'sss thisss heap of metal doesss not explode have a midssshipman in here for all I care.
 	DELAY 100
-	SAY Regardlesss. Letsss get to what thisss isss about. You may have noticed that you have sssome new piecesss of heavy ordnance on your vesssel, courtesssy of the Queen herssself, may ssshe forever remain in ssstarsss' light.
-	DELAY 100
-	SAY It firesss ssslugsss of metallic alloy, sssomething that your ssshipkin ssshould have no difficulty procuring.
+	SAY Regardlesss. Letsss get to what thisss isss about. You may have noticed that you have a new piece of heavy ordnance on your vesssel.
+	DELAY 70
+	SAY Ssshe firesss ssslugsss of metallic alloy, sssomething that your ssshipkin ssshould have no difficulty procuring.
 	DELAY 50
-	SAY Make sssure to feed it plenty of power and it will keep you sssafe, by causssing sssome very big holesss in anything it isss pointed towardsss.
+	SAY Make sssure to feed her plenty of power and ssshe will keep you sssafe, by causssing sssome very big holesss in anything ssshe isss pointed towardsss.
 	DELAY 80
 	SAY Oh right, yeah, asss you already may have noticed, thisss thing isss fixed to your hull ssso you will have to point the entire ssship towardsss what isss to be removed from the sssyssstem.
 	DELAY 80
-	SAY At leassst it isss pretty armored though, nothing ssshould be able to break her permanently. Jussst sssome repairsss and ssshe will be back in her roaring might.
+	SAY At leassst it isss pretty armored though, nothing ssshould be able to break her permanently. Jussst sssome repairsss and ssshe will be back in all her roaring might.
 	DELAY 110
-	SAY Onwardsss, lassstly, they asssked usss to ssstrip part of the sssafeguards and power flow limitersss, which meansss you will have to watch out for the railsss losssing alignment assswell asss posssible dissschargesss.
+	SAY Onwardsss, lassstly, they asssked usss to ssstrip part of the sssafeguards and power flow limitersss, which meansss you will have to watch out for the railsss losssing alignment assswell asss posssible violent dissschargesss.
 	DELAY 80
-	SAY Might be able to get even more of a blassst out of it when sssetup right, if the risssk of combussstion isss nothing to you.. But that likely won't ssshake any of you given your 'reputation'.
+	SAY Might be able to get even more of a blassst out of her when sssetup right, if the risssk of combussstion isss nothing to you.. But that likely won't ssshake any of you given your 'reputation'.
 	DELAY 80
 	SAY Keep sssome ssshock protection around, keep the railsss happy and you will probably be fine.
 	DELAY 30

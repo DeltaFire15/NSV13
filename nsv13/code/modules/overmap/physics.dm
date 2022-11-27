@@ -636,7 +636,7 @@ This proc is to be used when someone gets stuck in an overmap ship, gauss, WHATE
 		xo = targloc.x - curloc.x
 		if(lateral)
 			setAngle(overmap_angle(src, targloc) + spread)
-	else
+	else if(lateral)
 		stack_trace("WARNING: Projectile [type] fired without either mouse parameters, or a target atom to aim at!")
 		qdel(src)
 

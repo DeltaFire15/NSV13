@@ -551,8 +551,8 @@ Proc to spool up a new Z-level for a player ship and assign it a treadmill.
 				var/datum/ship_weapon/SW = weapon_types[mode] //For annoying ships like whisp
 				if(!SW || !(SW.allowed_roles & OVERMAP_USER_ROLE_PILOT))
 					continue
-				var/list/loaded = SW?.weapons["loaded"]
-				if(length(loaded))
+				var/loaded_count = SW.get_loaded_weapon_count()
+				if(loaded_count)
 					fire_weapon(target, mode)
 		return FALSE
 	if(tactical && prob(80))

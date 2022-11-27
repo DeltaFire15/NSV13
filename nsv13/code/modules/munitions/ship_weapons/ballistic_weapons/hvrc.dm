@@ -7,6 +7,7 @@ Setup circuit boards
 Setup techweb
 Setup needed components for machinery
 Setup repair code
+Add tool sounds to multitool realign / repair interactions.
 Actually make the capacitors use power when energized and especially when charging a slug
 Look at the whole energy -> speed thing since speed seems to be kinda weird.
 Revisit zap multiplier -> might be still very big
@@ -19,7 +20,7 @@ scream at code
 */
 
 //Hmm lets assume something like 100MW charged as base damage for now.. Rails 5, capacitors 1. Base parts, up to x4 from adv parts.
-
+//Delta from the future here, oh lord yeah this will require more number crunching than I like.
 #define HVRC_POWER_UNITS_PER_DAMAGE 200000 //0.2 MW / point of damage, for now
 #define HVRC_SPEED_EQUATION(x) (round(CLAMP(12 - (0.837537 * log((0.375504 * x) + 174.207) - 4.32207), 0.1, 12), 0.1)) //Starts at 12 ticks / tile, converges towards 0.1 at ~1GW Aka, this is substracted from the base value. Thank you function equation finder tool.
 #define HVRC_MIN_POWER_MEDIUM_DAMAGE 10000000 //10MW min charged to be a medium damtype projectile
@@ -34,6 +35,21 @@ scream at code
 #define HVRC_BROKEN 0
 #define HVRC_NORMAL 1
 #define HVRC_CHANNELLING 2
+
+#define GENTLE_DISCHARGE 1 //Rails properly depowered after losing charge due to firing.
+#define VIOLENT_DISCHARGE 2 //Rails improperly discharged by manually releasing charged state without firing.
+
+#define VIOLENT_DISCHARGE_COEFF 0.1 //How much power relative to the total power available in the capacitors do the rails shock with if improperly discharged? Should be low.
+
+//TODO: Implement these defs into actual repair code.
+#define HVRC_REPAIR_STAGE_NORMAL 0 //Not broken.
+#define HVRC_REPAIR_STAGE_1 1 //Stage the device ends up in when broken, needs 5 plasteel applied.
+#define HVRC_REPAIR_STAGE_2 2 //Next stage, needs wrenching.
+#define HVRC_REPAIR_STAGE_3 3 //Next stage, needs welding.
+#define HVRC_REPAIR_STAGE_4 4 //Next stage, needs wiring.
+#define HVRC_REPAIR_STAGE_5 5 //Next stage, needs multitool.
+#define HVRC_REPAIR_STAGE_6 6 //Next stage, needs metal (casing).
+#define HVRC_REPAIR_STAGE_7 7 //Final stage, once more welding. When done, calls repair().
 
 //Rail nonfunctional.
 #define RAILSTATE_NONE 0
@@ -71,6 +87,8 @@ ALL HVRC-weapon-centric machinery only faces "nosewards" for a ship, aka RIGHT.
 
 ///Special things that some HVRC machinery might do when unlinked from its core (usually forced due to no manual way to do this).
 /obj/machinery/hvrc/proc/on_unlink()
+    if(current_state == HVRC_CHANNELLING)
+        switch_state(HVRC_NORMAL)
     return
     
 ///Overrides parent proc!
@@ -153,6 +171,103 @@ Circuit board indestructible and cannot be printed without admin intervention or
     var/total_rails = 0
     ///The currently loaded railcannon slug, if any.
     var/obj/item/ship_weapon/ammunition/hvrc/loaded_slug
+    ///The ship weapon this is linked to.
+    var/datum/ship_weapon/hvrc_snowflake_weapon/linked_gun
+    ///Linked overmap
+    var/obj/structure/overmap/linked_overmap
+
+/**
+ * Uses power from capacitors linked to the core.
+ * * Args:
+ * * * amount: How much power is to be used.
+ * * * soft_limit: If true, it will also accept less power than amount if it's bigger than zero.
+ * * Returns:
+ * * * power used, 0 if failed.
+**/
+/obj/machinery/hvrc/core/proc/use_capacitor_power(amount, soft_limit = FALSE)
+    return TRUE
+    //TODO actually use power from linked capacitors, return amount used if successful, 0 if not enough. Amount used can be smaller than amount if there was not enough, provided soft_limit is true.
+
+/obj/machinery/hvrc/core/Initialize(mapload)
+    . = ..()
+    if(!mapload)
+        link_to_overmap()
+    else
+        addtimer(CALLBACK(src, .proc/link_to_overmap), 15 SECONDS)
+
+/obj/machinery/hvrc/core/Destroy()
+    if(linked_gun)
+        linked_gun.linked_hvrc_cores -= src
+    if(loaded_slug)
+        QDEL_NULL(loaded_slug)
+    return ..()
+
+/obj/machinery/hvrc/core/proc/link_to_overmap()
+    linked_overmap = get_overmap()
+    if(!linked_overmap)
+        return
+    for(var/I = FIRE_MODE_ANTI_AIR; I <= MAX_POSSIBLE_FIREMODE; I++) //Do we already have a weapon?
+        var/datum/ship_weapon/SW = linked_overmap.weapon_types[I]
+        if(!SW)
+            continue
+        if(istype(SW, /datum/ship_weapon/hvrc_snowflake_weapon)) //Does this ship have a weapon type registered for us? Prevents phantom weapon groups.
+            var/datum/ship_weapon/hvrc_snowflake_weapon/hvrc_weapon = SW
+            hvrc_weapon.link_hvrc(src)
+            return TRUE
+    linked_overmap.weapon_types[FIRE_MODE_RAILGUN] = new /datum/ship_weapon/hvrc_snowflake_weapon(linked_overmap)
+    var/datum/ship_weapon/hvrc_snowflake_weapon/hvrc_weapon = linked_overmap.weapon_types[FIRE_MODE_RAILGUN] //Overriding weapons this way causes harddels but oh well thats an issue for another day since all the guns do this.
+    hvrc_weapon.link_hvrc(src)
+
+///Is called when the projectile successfully reaches the end of the z level and is turned into a true overmap projectile.
+/obj/machinery/hvrc/core/proc/complete_firing_cycle(obj/item/projectile/bullet/proto_hvrc/fired_slug)
+    //TODO: Do the things that turn it into a real overmap projectile here!
+    discharge_system(GENTLE_DISCHARGE)
+    if(!linked_gun)
+        return //Guh?
+    linked_gun.transmute_true_projectile(fired_slug)
+
+///Is called when the projectile doesn't reach the end of the z level for whichever reason, e.g. hitting something.
+/obj/machinery/hvrc/core/proc/fail_firing_cycle(obj/item/projectile/bullet/proto_hvrc/fired_slug)
+    //TODO:Just cancel fire here and discharge rails.
+    discharge_system(GENTLE_DISCHARGE)
+
+/obj/machinery/hvrc/core/proc/discharge_system(discharge_type)
+    if(current_state == HVRC_CHANNELLING)
+        switch_state(HVRC_NORMAL)
+    var/available_power = get_available_power()
+    for(var/obj/machinery/hvrc/hvrc_machine as anything in linked_components)
+        if(hvrc_machine.current_state != HVRC_CHANNELLING)
+            continue
+        switch_state(HVRC_NORMAL)
+        if(discharge_type != VIOLENT_DISCHARGE)
+            continue
+        if(istype(hvrc_machine, /obj/machinery/hvrc/rail))
+            var/obj/machinery/hvrc/rail/hvrc_rail = hvrc_machine
+            hvrc_rail.degrade_rail(min(hvrc_rail.maximum_discharge, FLOOR(available_power * VIOLENT_DISCHARGE_COEFF, 1)), 2)
+    
+    if(discharge_type == VIOLENT_DISCHARGE)
+        for(var/obj/machinery/hvrc/capacitor/hvrc_capacitor in linked_components)
+            hvrc_capacitor.stored_charge = 0
+
+
+///The actual fire proc for the proto shell
+/obj/machinery/hvrc/core/proc/fire_proto_slug(turf/target_turf)
+    if(!loaded_slug || !primary_linkage_finished || current_state != HVRC_CHANNELLING)
+        return FALSE
+    prefire_acquire_values()
+    if(!total_rails || !total_available_energy || !allocated_percentage)
+        return FALSE
+    var/proto_slug_type = loaded_slug.projectile_type
+    var/obj/item/projectile/bullet/proto_hvrc/proto_hvrc = new proto_slug_type(get_turf(src))
+    proto_hvrc.linked_hvrc_core = src
+    proto_hvrc.preserved_target_turf = target_turf
+    /*
+    var/pseudo_target = get_step(src, EAST)
+    proto_proto_hvrc.preparePixelProjectile(pseudo_target, src)
+    */
+    proto_hvrc.fire(90)
+    QDEL_NULL(loaded_slug)
+
 
 ///testing proc for the proto shell firing. DEBUG ONLY.
 /obj/machinery/hvrc/core/proc/proto_proto_fire()
@@ -169,16 +284,15 @@ Circuit board indestructible and cannot be printed without admin intervention or
     if(!total_available_energy)
         message_admins("No power.")
         return
-/*
     if(!allocated_percentage)
         message_admins("At least allocate some power?")
         return
-*/
     current_state = HVRC_CHANNELLING //Should be done from console prefire, remember?
     for(var/obj/machinery/hvrc/linked_machine as anything in linked_components)
         linked_machine.current_state = HVRC_CHANNELLING
     var/proto_proto_slug_type = loaded_slug.projectile_type
-    var/obj/item/projectile/bullet/hvrc/proto_proto_hvrc = new proto_proto_slug_type(get_turf(src))
+    var/obj/item/projectile/bullet/proto_hvrc/proto_proto_hvrc = new proto_proto_slug_type(get_turf(src))
+    proto_proto_hvrc.linked_hvrc_core = src
     /*
     var/pseudo_target = get_step(src, EAST)
     proto_proto_hvrc.preparePixelProjectile(pseudo_target, src)
@@ -188,14 +302,19 @@ Circuit board indestructible and cannot be printed without admin intervention or
     message_admins("Woo fired, testing time!")
 
 /obj/machinery/hvrc/core/attackby(obj/item/I, mob/living/user, params)
+    if(!linked_overmap)
+        link_to_overmap()
     if(istype(I, /obj/item/ship_weapon/ammunition/hvrc))
+        if(current_state == HVRC_CHANNELLING)
+            to_chat(user, "<span class='warning'>Its rails are currently charged, you probably shouldn't touch it!</span>")
+            return
         if(loaded_slug)
             to_chat(user, "<span class='warning'>There is already a shell loaded!</span>")
             return
         to_chat(user, "<span class='notice'>You begin loading [I] into [src].</span>")
         if(!do_after(user, 2 SECONDS, target=src))
             return
-        if(loaded_slug)
+        if(loaded_slug || current_state == HVRC_CHANNELLING)
             return //bad
         I.forceMove(src)
         loaded_slug = I
@@ -218,12 +337,17 @@ Circuit board indestructible and cannot be printed without admin intervention or
     for(var/obj/machinery/hvrc/hvrc_machine as anything in linked_components)
         if(istype(hvrc_machine, /obj/machinery/hvrc/rail))
             total_rails++
-        if(istype(hvrc_machine, /obj/machinery/hvrc/capacitor))
-            var/obj/machinery/hvrc/capacitor/hvrc_capacitor = hvrc_machine
-            if(hvrc_capacitor.current_state == HVRC_BROKEN)
-                continue
-            total_available_energy += hvrc_capacitor.stored_charge
-        
+    total_available_energy = get_available_power()
+
+/obj/machinery/hvrc/core/proc/get_available_power()
+    . = 0
+    for(var/obj/machinery/hvrc/hvrc_machine as anything in linked_components)
+        if(!istype(hvrc_machine, /obj/machinery/hvrc/capacitor))
+            continue
+        var/obj/machinery/hvrc/capacitor/hvrc_capacitor = hvrc_machine
+        if(hvrc_capacitor.current_state == HVRC_BROKEN)
+            continue
+        . += hvrc_capacitor.stored_charge
 
 /obj/machinery/hvrc/core/multitool_act(mob/living/user, obj/item/I)
     if(!multitool_check_buffer(user, I))
@@ -327,10 +451,10 @@ Manually cancelling energizing process or running out of power causes discharges
         if(RAILSTATE_NOMINAL)
             var/discharge_prob = 5 + ((CEILING(max(0, applied_charge - 60000000) / 10000000, 1)) * 5) //You are throwing HOW MUCH power at this thing?
             if(prob(discharge_prob))
-                degrade_rail(proto_slug, applied_charge)
+                degrade_rail(applied_charge)
             return TRUE
         if(RAILSTATE_DIVERGING)
-            degrade_rail(proto_slug, applied_charge)
+            degrade_rail(applied_charge)
             return TRUE
         if(RAILSTATE_MISALIGNED)
             rail_zap(proto_slug.stored_power)
@@ -339,14 +463,17 @@ Manually cancelling energizing process or running out of power causes discharges
             return FALSE
 
 ///Degrades rail maintenance by one tier.
-/obj/machinery/hvrc/rail/proc/degrade_rail(obj/item/projectile/bullet/proto_hvrc/proto_slug, applied_charge)
+/obj/machinery/hvrc/rail/proc/degrade_rail(applied_charge, degrade_levels = 1)
     ///Power of a possible zap due to degradation, determined by projectile stats.
     var/zap_power = applied_charge * RAIL_ZAP_COEFF
     switch(rail_status)
         if(RAILSTATE_NONE, RAILSTATE_MISALIGNED)
-            return //Huh??
+            return //Huh?
         if(RAILSTATE_NOMINAL)
-            rail_status = RAILSTATE_DIVERGING
+            if(degrade_levels == 1)
+                rail_status = RAILSTATE_DIVERGING
+            else
+                rail_status = RAILSTATE_MISALIGNED
             update_icon()
             rail_zap(FLOOR(zap_power / 5, 1))
         if(RAILSTATE_DIVERGING)
@@ -371,11 +498,16 @@ Manually cancelling energizing process or running out of power causes discharges
     var/available_charge = min(FLOOR(linked_core.total_available_energy * (linked_core.allocated_percentage * 0.01) / linked_core.total_rails, 1), maximum_discharge)
     if(!degradation_check(passing_slug, available_charge))
         return FALSE
+    if(!linked_core.use_capacitor_power(available_charge, TRUE))
+        detonate_hvrc(passing_slug.stored_power)
+        qdel(passing_slug)
+        return FALSE
     passing_slug.stored_power += available_charge
     passing_slug.damage = initial(passing_slug.damage) + FLOOR(passing_slug.stored_power / HVRC_POWER_UNITS_PER_DAMAGE, 1)
     passing_slug.speed = HVRC_SPEED_EQUATION(passing_slug.stored_power)
     if(passing_slug.stored_power > HVRC_MIN_PEN_POWER)
         passing_slug.projectile_piercing = ALL
+        passing_slug.dismemberment = 200
     return TRUE
 
 /obj/machinery/hvrc/rail/multitool_act(mob/living/user, obj/item/I)
@@ -532,17 +664,6 @@ Contains various readouts.
     return TRUE
         
 
-
-
-#undef HVRC_BROKEN
-#undef HVRC_NORMAL
-#undef HVRC_CHANNELLING
-
-#undef RAILSTATE_NONE
-#undef RAILSTATE_NOMINAL
-#undef RAILSTATE_DIVERGING
-#undef RAILSTATE_MISALIGNED
-
 /*
 TEMP Location for HVRC Boards
 Move these somewhere they make more sense later!
@@ -562,3 +683,80 @@ Move these somewhere they make more sense later!
 /obj/item/circuitboard/hvrc_capacitor
 
 /obj/item/circuitboard/computer/hvrc_control
+
+/*
+Suffering which I wish was temp but probably will have to do entirely.
+Snowflake weapon datum because this isn't a machinery/ship_weapon subtype due to having no common elements below the machinery layer.
+*/
+
+/*
+This shouldn't exist but alas it does because single inheritance. Basically, normally these datums link to ship weapon machines but the HVRC is its own type.
+AI currently canno use this weapon on their ships. So, don't hand it to them.
+*/
+/datum/ship_weapon/hvrc_snowflake_weapon
+    name = "Railcannons"
+    ///List of hvrc cores linked to this ship weapon.
+    var/list/linked_hvrc_cores = list()
+    lateral = FALSE
+
+///Always fires forwards on any click. Overrides parent proc. Also fires as fast as you can load and charge the thing.
+/datum/ship_weapon/hvrc_snowflake_weapon/special_fire(atom/target, ai_aim)
+    . = 2 //Do not let the normal fire proc do anything with this gun. Magicnumbered because FIRE_INTERCETED gets undef'd.
+    ///TODO: Do the fancy stuff here.
+    for(var/obj/machinery/hvrc/core/linked_core as anything in linked_hvrc_cores)
+        if(!linked_core.loaded_slug || linked_core.current_state != HVRC_CHANNELLING)
+            continue
+        linked_core.fire_proto_slug(get_turf(target))
+        break
+
+/datum/ship_weapon/hvrc_snowflake_weapon/proc/transmute_true_projectile(obj/item/projectile/bullet/proto_hvrc/proto_slug)
+    var/slug_power = proto_slug.stored_power
+    var/obj/item/projectile/bullet/hvrc/true_slug = holder.fire_projectile(proto_slug.true_projectile_type, proto_slug.preserved_target_turf, FALSE, lateral=lateral, ai_aim=FALSE, miss_chance=miss_chance, max_miss_distance=max_miss_distance)
+    true_slug.speed = HVRC_SPEED_EQUATION(slug_power)
+    true_slug.damage = initial(true_slug.damage) + FLOOR(slug_power / HVRC_POWER_UNITS_PER_DAMAGE, 1)
+    if(slug_power > HVRC_MIN_PEN_POWER)
+        true_slug.projectile_piercing = ALL
+        true_slug.dismemberment = 200
+    switch(slug_power)
+        if(HVRC_MIN_POWER_HEAVY_DAMAGE to INFINITY)
+            true_slug.flag = "overmap_heavy"
+        if(HVRC_MIN_POWER_MEDIUM_DAMAGE to HVRC_MIN_POWER_HEAVY_DAMAGE)
+            true_slug.flag = "overmap_medium"
+        else
+            true_slug.flag = "overmap_light"
+
+
+/datum/ship_weapon/hvrc_snowflake_weapon/get_max_ammo()
+    return length(linked_hvrc_cores)
+
+/datum/ship_weapon/hvrc_snowflake_weapon/get_ammo()
+    . = 0
+    for(var/obj/machinery/hvrc/core/linked_core as anything in linked_hvrc_cores)
+        if(linked_core.loaded_slug && linked_core.current_state == HVRC_CHANNELLING)
+            . += 1
+
+/datum/ship_weapon/hvrc_snowflake_weapon/reload()
+    return //No.
+
+/datum/ship_weapon/hvrc_snowflake_weapon/get_loaded_weapon_count()
+    . = 0
+    for(var/obj/machinery/hvrc/core/linked_core as anything in linked_hvrc_cores)
+        if(linked_core.loaded_slug && linked_core.current_state == HVRC_CHANNELLING)
+            . += 1
+
+/datum/ship_weapon/hvrc_snowflake_weapon/proc/link_hvrc(obj/machinery/hvrc/core/to_link)
+    if(linked_hvrc_cores.Find(to_link))
+        return
+    linked_hvrc_cores.Add(to_link)
+    to_link.linked_gun = src
+        
+
+
+#undef HVRC_BROKEN
+#undef HVRC_NORMAL
+#undef HVRC_CHANNELLING
+
+#undef RAILSTATE_NONE
+#undef RAILSTATE_NOMINAL
+#undef RAILSTATE_DIVERGING
+#undef RAILSTATE_MISALIGNED

@@ -161,13 +161,8 @@
 	. = ..()
 	var/list/data = list()
 	for(var/datum/ship_weapon/SW_type in linked.weapon_types)
-		var/ammo = 0
-		var/max_ammo = 0
 		var/thename = SW_type.name
-		for(var/obj/machinery/ship_weapon/SW in SW_type.weapons["all"])
-			if(!SW)
-				continue
-			max_ammo += SW.get_max_ammo()
-			ammo += SW.get_ammo()
+		var/max_ammo = SW_type.get_max_ammo()
+		var/ammo = SW_type.get_ammo()
 		data["weapons"] += list(list("name" = thename, "ammo" = ammo, "maxammo" = max_ammo))
 	return data

@@ -35,6 +35,23 @@
 
 	var/ai_fire_delay = 0 // make it fair on the humans who have to reload and stuff
 
+/datum/ship_weapon/proc/get_max_ammo()
+	. = 0
+	for(var/obj/machinery/ship_weapon/SW in weapons["all"])
+		if(!SW)
+			continue
+		. += SW.get_max_ammo()
+
+/datum/ship_weapon/proc/get_ammo()
+	. = 0
+	for(var/obj/machinery/ship_weapon/SW in weapons["all"])
+		if(!SW)
+			continue
+		. += SW.get_ammo()
+
+/datum/ship_weapon/proc/get_loaded_weapon_count()
+	. = length(weapons["loaded"])
+
 /datum/ship_weapon/New(obj/structure/overmap/source, ...)
 	. = ..()
 	if(!source)
