@@ -335,3 +335,46 @@
 	SAY SECURITY CLASS: ARD-C8 CLASSIFIED
 	SAY END METADATA
 "}
+
+/datum/outfit/centcom_intern/cone
+	head = /obj/item/clothing/head/cone
+	glasses = null
+
+/datum/preset_holoimage/budget_intern_guide
+	outfit_type = /datum/outfit/centcom_intern/cone
+	species_type = /datum/species/lizard
+
+/obj/item/disk/holodisk/hvrc_brief
+	name = "High Velocity Railcannon Briefing (Classified)"
+	desc = "A holodisk that seems to contain a briefing on a certain new weapon system. The \"classified\" label on it appears to have been hastily crossed out."
+	preset_image_type = /datum/preset_holoimage/budget_intern_guide
+	preset_record_text = {"
+	NAME Valish-Tal
+	DELAY 20
+	SAY Thisss holotape and itsss contentsss are 'classsified' and ssshould only be viewed by the ssship'sss munitionsss and engineering ssstaff.
+	DELAY 80
+	SAY However, I'll be quite honessst I'm pretty sssure they aren't actually watching thessse prior to ssshipping anywaysss ssso have my opinion, 'sss long 'sss thisss heap of metal doesss not explode have a midssshipman in here for all I care.
+	DELAY 100
+	SAY Regardlesss. Letsss get to what thisss isss about. You may have noticed that you have sssome new piecesss of heavy ordnance on your vesssel, courtesssy of the Queen herssself, may ssshe forever remain in ssstarsss' light.
+	DELAY 100
+	SAY It firesss ssslugsss of metallic alloy, sssomething that your ssshipkin ssshould have no difficulty procuring.
+	DELAY 50
+	SAY Make sssure to feed it plenty of power and it will keep you sssafe, by causssing sssome very big holesss in anything it isss pointed towardsss.
+	DELAY 80
+	SAY Oh right, yeah, asss you already may have noticed, thisss thing isss fixed to your hull ssso you will have to point the entire ssship towardsss what isss to be removed from the sssyssstem.
+	DELAY 80
+	SAY At leassst it isss pretty armored though, nothing ssshould be able to break her permanently. Jussst sssome repairsss and ssshe will be back in her roaring might.
+	DELAY 110
+	SAY Onwardsss, lassstly, they asssked usss to ssstrip part of the sssafeguards and power flow limitersss, which meansss you will have to watch out for the railsss losssing alignment assswell asss posssible dissschargesss.
+	DELAY 80
+	SAY Might be able to get even more of a blassst out of it when sssetup right, if the risssk of combussstion isss nothing to you.. But that likely won't ssshake any of you given your 'reputation'.
+	DELAY 80
+	SAY Keep sssome ssshock protection around, keep the railsss happy and you will probably be fine.
+	DELAY 30
+	SAY That ssshould be all. I am sssure thisss kind of weapon sssuitsss you.
+	DELAY 30
+	LANGUAGE /datum/language/draconic
+	SAY Glory to the Draconic Empire. Burn bright 'sss the ssstarsss themssselvesss.
+	DELAY 40
+"}
+
