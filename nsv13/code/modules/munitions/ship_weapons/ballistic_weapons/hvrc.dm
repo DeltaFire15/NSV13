@@ -19,18 +19,32 @@ Sprites. ... --- ...
 scream at code
 */
 
+//Turn back all ye who enter here.
+
 //Hmm lets assume something like 100MW charged as base damage for now.. Rails 5, capacitors 1. Base parts, up to x4 from adv parts.
 //Delta from the future here, oh lord yeah this will require more number crunching than I like.
 #define HVRC_POWER_UNITS_PER_DAMAGE 200000 //0.2 MW / point of damage, for now
 #define HVRC_SPEED_EQUATION(x) (round(CLAMP(12 - (0.837537 * log((0.375504 * x) + 174.207) - 4.32207), 0.1, 12), 0.1)) //Starts at 12 ticks / tile, converges towards 0.1 at ~1GW Aka, this is substracted from the base value. Thank you function equation finder tool.
+#define HVRC_OVERMAP_POWER_PER_RANGE 1000000 //1MW per point of range over its base of 10. Intended to end up pretty high.
+#define HVRC_OVERMAP_MAX_RANGE 255 //Range can't get increases past this. For now. Although.......
 #define HVRC_MIN_POWER_MEDIUM_DAMAGE 10000000 //10MW min charged to be a medium damtype projectile
 #define HVRC_MIN_POWER_HEAVY_DAMAGE 80000000 //80MW min charged to be a heavy projectile
+
+//x = (root(2) * root(y) / root(z)) - x = wanted existance in ticks, y = pixel distance to pass, z = gravity speed. Thank you integrals.
+#define HVRC_PARTICLE_TIME_FUNCTION(y, z) (CEILING(((ROOT(1, 2) * ROOT(1, y)) / ROOT(1, z)),1)) //Ratvar ward me from this evil.
 
 #define HVRC_BASE_MAX_CAPACITOR_CHARGERATE 1000000 //1MW / second max chargerate
 #define HVRC_BASE_MAX_CAPACITOR_CHARGE 100000000 //100MW base maxcharge for the moment
 #define HVRC_BASE_MAX_RAIL_DISCHARGE 20000000 //20MW maximum discharge per rail base for now.
 #define RAIL_ZAP_COEFF 0.1 //Multiplier to how much of the actual applied power is in the zap. Should be small due to us throwing arounds metawatts of energy.
+#define RAIL_ZAP_RANGE 4 //Base range of zaps emitted by rails.
 #define HVRC_MIN_PEN_POWER 25000000 //25MW to penetrate
+
+#define HVRC_MAX_PARTICLES_PER_TICK 10 //How many particles per tick does the HVRC generate at most when active?
+#define HVRC_PARTICLE_BUILDUP_SPEED 1 //How fast does particles per tick go up per cycle?
+#define HVRC_PARTICLE_BUILDUP_DELAY 5 //Delay between each buildup increase
+#define HVRC_PARTICLE_WINDDOWN_SPEED 2 //How fast does particles per tick go down per cycle?
+#define HVRC_PARTICLE_WINDDOWN_DELAY 5 //Delay between each buildup decrease
 
 #define HVRC_BROKEN 0
 #define HVRC_NORMAL 1
@@ -43,13 +57,12 @@ scream at code
 
 //TODO: Implement these defs into actual repair code.
 #define HVRC_REPAIR_STAGE_NORMAL 0 //Not broken.
-#define HVRC_REPAIR_STAGE_1 1 //Stage the device ends up in when broken, needs 5 plasteel applied.
-#define HVRC_REPAIR_STAGE_2 2 //Next stage, needs wrenching.
-#define HVRC_REPAIR_STAGE_3 3 //Next stage, needs welding.
-#define HVRC_REPAIR_STAGE_4 4 //Next stage, needs wiring.
-#define HVRC_REPAIR_STAGE_5 5 //Next stage, needs multitool.
-#define HVRC_REPAIR_STAGE_6 6 //Next stage, needs metal (casing).
-#define HVRC_REPAIR_STAGE_7 7 //Final stage, once more welding. When done, calls repair().
+#define HVRC_REPAIR_STAGE_NEEDS_PLASTEEL 1 //Stage the device ends up in when broken, needs 5 plasteel applied.
+#define HVRC_REPAIR_STAGE_NEEDS_WRENCH 2 //Next stage, needs wrenching.
+#define HVRC_REPAIR_STAGE_NEEDS_WELD 3 //Next stage, needs welding.
+#define HVRC_REPAIR_STAGE_NEEDS_WIRE 4 //Next stage, needs wiring.
+#define HVRC_REPAIR_STAGE_NEEDS_METAL 5 //Next stage, needs metal (casing).
+#define HVRC_REPAIR_STAGE_NEEDS_FINAL_WELD 6 //Final stage, once more welding. When done, calls repair().
 
 //Rail nonfunctional.
 #define RAILSTATE_NONE 0
@@ -76,6 +89,7 @@ ALL HVRC-weapon-centric machinery only faces "nosewards" for a ship, aka RIGHT.
     density = TRUE
     ///Icon state used for the broken machine as these cannon simply desintegrate from damage alone.
     var/broken_state = "uhoh"
+    var/repair_stage = HVRC_REPAIR_STAGE_NORMAL
     ///Current state
     var/current_state = HVRC_NORMAL
     ///Which core is this machine linked to? Cores themselves obviously have no link.
@@ -97,6 +111,7 @@ ALL HVRC-weapon-centric machinery only faces "nosewards" for a ship, aka RIGHT.
     obj_integrity = max_integrity
     obj_flags |= INDESTRUCTIBLE
     flags_1 |= TESLA_IGNORE_1
+    repair_stage = HVRC_REPAIR_STAGE_NEEDS_PLASTEEL
     switch_state(HVRC_BROKEN)
     update_icon()
 
@@ -107,7 +122,10 @@ ALL HVRC-weapon-centric machinery only faces "nosewards" for a ship, aka RIGHT.
 
 ///For switching to different which may have secondary effects depending on situation.
 /obj/machinery/hvrc/proc/switch_state(switch_to)
+    if(current_state == switch_to)
+        return FALSE
     current_state = switch_to
+    return TRUE
 
 ///Called when repairs on a machine are finished after it broke apart.
 /obj/machinery/hvrc/proc/repair()
@@ -116,6 +134,7 @@ ALL HVRC-weapon-centric machinery only faces "nosewards" for a ship, aka RIGHT.
     obj_integrity = max_integrity
     obj_flags &= ~INDESTRUCTIBLE
     flags_1 &= ~TESLA_IGNORE_1
+    repair_stage = HVRC_REPAIR_STAGE_NORMAL
     update_icon()
 
 /obj/machinery/hvrc/ex_act(severity, target)
@@ -175,6 +194,63 @@ Circuit board indestructible and cannot be printed without admin intervention or
     var/datum/ship_weapon/hvrc_snowflake_weapon/linked_gun
     ///Linked overmap
     var/obj/structure/overmap/linked_overmap
+    ///HVRC particles which have emission triggered when energized and disabled when deenergized.
+    var/obj/effect/abstract/particle_holder/hvrc_particle_holder
+
+/obj/machinery/hvrc/core/switch_state(switch_to)
+    var/was_charged = (current_state == HVRC_CHANNELLING ? TRUE : FALSE)
+    . = ..()
+    if(!.)
+        return //Make sure we return if the state is still the same.
+    if(was_charged)
+        stop_channelling_particles()
+    else if(switch_to == HVRC_CHANNELLING)
+        start_channelling_particles()
+
+///Starts emitting particles to make the HVRC look cooler (and also to notify that it is channelling). Winds up over time to their max count.
+/obj/machinery/hvrc/core/proc/start_channelling_particles()
+    set waitfor = FALSE
+    var/particles/hvrc_energized_particles/linked_particles = hvrc_particle_holder.particles
+    if(!linked_particles)
+        CRASH("For some reason the attached particles meant to be on a HVRC were missing.")
+    var/noncapacitor_component_count = 0
+    for(var/obj/machinery/hvrc/hvrc_machine as anything in linked_components)
+        if(istype(hvrc_machine, /obj/machinery/hvrc/capacitor))
+            continue
+        noncapacitor_component_count++
+    //TODO: This curremtly isn't working as expected. Check on this stuff and see how you make them disappear properly. Oh wait it's SECONDS the TIME!! - need to do integral solving.
+    linked_particles.width = min(32*(noncapacitor_component_count*2+1), 640) //I don't know how big I can make these without causing potatoes to explode so I'll cap it at 20 tiles of HVRC for safety
+    var/distance_to_pass = 32*noncapacitor_component_count
+    var/particle_acceleration = 0.2 //TODO: Make this dependant on power level!
+    linked_particles.gravity = list(particle_acceleration, 0)
+    linked_particles.lifespan = HVRC_PARTICLE_TIME_FUNCTION(distance_to_pass, particle_acceleration)
+    while(TRUE)
+        if(QDELETED(src))
+            return
+        if(current_state != HVRC_CHANNELLING)
+            return
+        var/new_spawning = min(linked_particles.spawning + HVRC_PARTICLE_BUILDUP_SPEED, HVRC_MAX_PARTICLES_PER_TICK)
+        if(linked_particles.spawning == new_spawning)
+            return
+        linked_particles.spawning = new_spawning
+        sleep(HVRC_PARTICLE_BUILDUP_DELAY) //TODO: Play around with buildup change per tick.
+
+///Winds down current particle emissions towards 0 over time, to signify the Railcannon shutting down.
+/obj/machinery/hvrc/core/proc/stop_channelling_particles()
+    set waitfor = FALSE
+    var/particles/hvrc_energized_particles/linked_particles = hvrc_particle_holder.particles
+    if(!linked_particles)
+        CRASH("For some reason the attached particles meant to be on a HVRC were missing.")
+    while(TRUE)
+        if(QDELETED(src))
+            return
+        if(current_state == HVRC_CHANNELLING)
+            return
+        var/new_spawning = max(linked_particles.spawning - HVRC_PARTICLE_WINDDOWN_SPEED, 0)
+        if(linked_particles.spawning == new_spawning)
+            return
+        linked_particles.spawning = new_spawning
+        sleep(HVRC_PARTICLE_WINDDOWN_DELAY) //TODO: Play around with winddown discharge per tick.
 
 /**
  * Uses power from capacitors linked to the core.
@@ -194,6 +270,7 @@ Circuit board indestructible and cannot be printed without admin intervention or
         link_to_overmap()
     else
         addtimer(CALLBACK(src, .proc/link_to_overmap), 15 SECONDS)
+    hvrc_particle_holder = new(src, /particles/hvrc_energized_particles)
 
 /obj/machinery/hvrc/core/Destroy()
     if(linked_gun)
@@ -218,10 +295,12 @@ Circuit board indestructible and cannot be printed without admin intervention or
     var/datum/ship_weapon/hvrc_snowflake_weapon/hvrc_weapon = linked_overmap.weapon_types[FIRE_MODE_RAILGUN] //Overriding weapons this way causes harddels but oh well thats an issue for another day since all the guns do this.
     hvrc_weapon.link_hvrc(src)
 
+///Is called when the projectile successfully leaves the muzzle of the Railcannon and powers down the rails.
+/obj/machinery/hvrc/core/proc/firing_cycle_slug_launch(obj/item/projectile/bullet/proto_hvrc/fired_slug)
+    discharge_system(GENTLE_DISCHARGE)
+
 ///Is called when the projectile successfully reaches the end of the z level and is turned into a true overmap projectile.
 /obj/machinery/hvrc/core/proc/complete_firing_cycle(obj/item/projectile/bullet/proto_hvrc/fired_slug)
-    //TODO: Do the things that turn it into a real overmap projectile here!
-    discharge_system(GENTLE_DISCHARGE)
     if(!linked_gun)
         return //Guh?
     linked_gun.transmute_true_projectile(fired_slug)
@@ -231,6 +310,18 @@ Circuit board indestructible and cannot be printed without admin intervention or
     //TODO:Just cancel fire here and discharge rails.
     discharge_system(GENTLE_DISCHARGE)
 
+/obj/machinery/hvrc/core/proc/charge_system()
+    if(current_state != HVRC_NORMAL)
+        return FALSE
+    if(!get_available_power())
+        return FALSE
+    if(!primary_linkage_finished)
+        return FALSE
+    switch_state(HVRC_CHANNELLING)
+    for(var/obj/machinery/hvrc/hvrc_machine as anything in linked_components)
+        hvrc_machine.switch_state(HVRC_CHANNELLING)
+    return TRUE
+
 /obj/machinery/hvrc/core/proc/discharge_system(discharge_type)
     if(current_state == HVRC_CHANNELLING)
         switch_state(HVRC_NORMAL)
@@ -238,7 +329,7 @@ Circuit board indestructible and cannot be printed without admin intervention or
     for(var/obj/machinery/hvrc/hvrc_machine as anything in linked_components)
         if(hvrc_machine.current_state != HVRC_CHANNELLING)
             continue
-        switch_state(HVRC_NORMAL)
+        hvrc_machine.switch_state(HVRC_NORMAL)
         if(discharge_type != VIOLENT_DISCHARGE)
             continue
         if(istype(hvrc_machine, /obj/machinery/hvrc/rail))
@@ -420,6 +511,24 @@ Manually cancelling energizing process or running out of power causes discharges
     rail_status = RAILSTATE_NONE
     return ..()
 
+// :)
+/obj/machinery/hvrc/rail/emag_act()
+    . = ..()
+    if(CHECK_BITFIELD(obj_flags, EMAGGED))
+        return FALSE
+    if(current_state == HVRC_CHANNELLING)
+        return FALSE
+    ENABLE_BITFIELD(obj_flags, EMAGGED)
+    update_icon()
+    return TRUE
+
+
+/obj/machinery/hvrc/rail/on_unlink()
+    if(linked_core && current_state == HVRC_CHANNELLING)
+        var/zappy = min(linked_core.get_available_power(), maximum_discharge)
+        rail_zap(zappy)
+    return ..()
+
 /obj/machinery/hvrc/rail/repair()
     rail_status = RAILSTATE_MISALIGNED //After fixing a completely busted rail you also have to realign it.
     return ..()
@@ -428,6 +537,9 @@ Manually cancelling energizing process or running out of power causes discharges
     . = ..()
     if(current_rail_status_overlay)
         cut_overlay(current_rail_status_overlay)
+    if(rail_status != RAILSTATE_NONE && CHECK_BITFIELD(obj_flags, EMAGGED))
+        add_overlay("temp_state_diverging")
+        current_rail_status_overlay = "temp_state_diverging"
     switch(rail_status)
         if(RAILSTATE_NONE)
             current_rail_status_overlay = null
@@ -441,7 +553,7 @@ Manually cancelling energizing process or running out of power causes discharges
             add_overlay("temp_state_misaligned")
             current_rail_status_overlay = "temp_state_misaligned"
 
-///Checks for high-stress degradation from firing slugs. TEMP: This should pass the projectile.
+///Checks for high-stress degradation from firing slugs.
 /obj/machinery/hvrc/rail/proc/degradation_check(obj/item/projectile/bullet/proto_hvrc/proto_slug, applied_charge)
     switch(rail_status)
         if(RAILSTATE_NONE)
@@ -467,7 +579,7 @@ Manually cancelling energizing process or running out of power causes discharges
     ///Power of a possible zap due to degradation, determined by projectile stats.
     var/zap_power = applied_charge * RAIL_ZAP_COEFF
     switch(rail_status)
-        if(RAILSTATE_NONE, RAILSTATE_MISALIGNED)
+        if(RAILSTATE_NONE)
             return //Huh?
         if(RAILSTATE_NOMINAL)
             if(degrade_levels == 1)
@@ -480,12 +592,13 @@ Manually cancelling energizing process or running out of power causes discharges
             rail_status = RAILSTATE_MISALIGNED
             update_icon()
             rail_zap(zap_power)
+        if(RAILSTATE_MISALIGNED)
+            rail_zap(zap_power)
 
 
 /obj/machinery/hvrc/rail/proc/rail_zap(power_level)
-    //TODO: Rail does a no-machinery no-explosions tesla zap (but does go to coils / grounding)
     playsound(get_turf(src), 'sound/magic/lightningshock.ogg', 100, 1, extrarange = 5)
-    tesla_zap(src, 2, power_level, TESLA_MOB_DAMAGE|TESLA_MOB_STUN)
+    tesla_zap(src, RAIL_ZAP_RANGE, power_level, TESLA_MOB_DAMAGE|TESLA_MOB_STUN)
 
 /obj/machinery/hvrc/rail/hvrc_slug_action(obj/item/projectile/bullet/proto_hvrc/passing_slug)
     . = ..()
@@ -504,7 +617,12 @@ Manually cancelling energizing process or running out of power causes discharges
         return FALSE
     passing_slug.stored_power += available_charge
     passing_slug.damage = initial(passing_slug.damage) + FLOOR(passing_slug.stored_power / HVRC_POWER_UNITS_PER_DAMAGE, 1)
-    passing_slug.speed = HVRC_SPEED_EQUATION(passing_slug.stored_power)
+    if(CHECK_BITFIELD(obj_flags, EMAGGED))
+        passing_slug.stored_power = FLOOR(passing_slug.stored_power * 0.5, 1)
+        passing_slug.setAngle(-passing_slug.Angle) //:)
+    var/new_speed = HVRC_SPEED_EQUATION(passing_slug.stored_power)
+    passing_slug.speed = new_speed
+    passing_slug.set_pixel_speed(new_speed)
     if(passing_slug.stored_power > HVRC_MIN_PEN_POWER)
         passing_slug.projectile_piercing = ALL
         passing_slug.dismemberment = 200
@@ -559,6 +677,7 @@ Once the slug successfully reaches the z level boarder, it turns into an actual 
     if(!linked_core)
         detonate_hvrc(passing_slug.stored_power)
     passing_slug.finished = TRUE
+    linked_core.firing_cycle_slug_launch(passing_slug)
 
 /*
 Capacitor of an HVRC.
@@ -698,6 +817,8 @@ AI currently canno use this weapon on their ships. So, don't hand it to them.
     ///List of hvrc cores linked to this ship weapon.
     var/list/linked_hvrc_cores = list()
     lateral = FALSE
+    miss_chance = 0
+    max_miss_distance = 0
 
 ///Always fires forwards on any click. Overrides parent proc. Also fires as fast as you can load and charge the thing.
 /datum/ship_weapon/hvrc_snowflake_weapon/special_fire(atom/target, ai_aim)
@@ -711,12 +832,13 @@ AI currently canno use this weapon on their ships. So, don't hand it to them.
 
 /datum/ship_weapon/hvrc_snowflake_weapon/proc/transmute_true_projectile(obj/item/projectile/bullet/proto_hvrc/proto_slug)
     var/slug_power = proto_slug.stored_power
-    var/obj/item/projectile/bullet/hvrc/true_slug = holder.fire_projectile(proto_slug.true_projectile_type, proto_slug.preserved_target_turf, FALSE, lateral=lateral, ai_aim=FALSE, miss_chance=miss_chance, max_miss_distance=max_miss_distance)
-    true_slug.speed = HVRC_SPEED_EQUATION(slug_power)
+    var/slug_speed = HVRC_SPEED_EQUATION(slug_power)
+    var/obj/item/projectile/bullet/hvrc/true_slug = holder.fire_projectile(proto_slug.true_projectile_type, proto_slug.preserved_target_turf, FALSE, slug_speed, lateral=lateral, ai_aim=FALSE, miss_chance=miss_chance, max_miss_distance=max_miss_distance)
     true_slug.damage = initial(true_slug.damage) + FLOOR(slug_power / HVRC_POWER_UNITS_PER_DAMAGE, 1)
     if(slug_power > HVRC_MIN_PEN_POWER)
         true_slug.projectile_piercing = ALL
         true_slug.dismemberment = 200
+    true_slug.range = min(HVRC_OVERMAP_MAX_RANGE, round(initial(true_slug.range) + (slug_power / HVRC_OVERMAP_POWER_PER_RANGE),1))
     switch(slug_power)
         if(HVRC_MIN_POWER_HEAVY_DAMAGE to INFINITY)
             true_slug.flag = "overmap_heavy"
@@ -751,6 +873,31 @@ AI currently canno use this weapon on their ships. So, don't hand it to them.
     to_link.linked_gun = src
         
 
+/*
+HVRC Particle effect(s)
+I have no idea how these actually work so bear with me here.
+*/
+/particles/hvrc_energized_particles
+    color = "#173ff055"
+    width = 320
+    height = 64
+    count = 1000
+    spawning = 0 //TODO: Wind up / down when activated / deactived?
+    bound1 = list(-1000, -1000, -1000) //-100, -1000, 0?
+    bound2 = list(1000, 1000, 1000) //100, 1000, 0? //TODO: Can I use and varchange these to basically go exactly the length of the Cannon?
+    gravity = list(0.2, 0) //Relative to power in the gun?
+    lifespan = 5 SECONDS
+    fade = 0.5 SECONDS
+    position = generator("vector", list(16, -16), list(16, 16), NORMAL_RAND)
+    velocity = list(0,0)
+    scale = generator("vector", list(0.5, 0.5), list(1.0, 1.0), NORMAL_RAND)
+    grow = 0 //TODO: Try out some stuff here?
+    rotation = 0
+    spin = 0 //TODO: Try out some stuff here?
+    drift = 0 //Try out some stuff here?
+    icon = 'nsv13/icons/effects/generic_particles.dmi' //TODO - testing
+    icon_state = "cross"
+//TODO: Make particles for the HVRC to release when currently channelling.
 
 #undef HVRC_BROKEN
 #undef HVRC_NORMAL

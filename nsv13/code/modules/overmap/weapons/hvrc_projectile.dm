@@ -94,4 +94,4 @@
     speed = 12
     obj_integrity = 300
     max_integrity = 300
-    range = 255
+    range = 10

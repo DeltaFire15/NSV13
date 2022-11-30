@@ -1,0 +1,138 @@
+//MAP CONVERTED BY dmm2tgm.py THIS HEADER COMMENT PREVENTS RECONVERSION, DO NOT REMOVE
+"a" = (
+/turf/open/floor/engine,
+/area/space)
+"o" = (
+/obj/machinery/hvrc/muzzle,
+/turf/open/floor/engine,
+/area/space)
+"s" = (
+/obj/structure/cable/yellow{
+	icon_state = "4-8"
+	},
+/turf/open/floor/engine,
+/area/space)
+"t" = (
+/obj/structure/cable/yellow{
+	icon_state = "4-8"
+	},
+/obj/structure/cable/yellow{
+	icon_state = "2-4"
+	},
+/obj/structure/cable/yellow{
+	icon_state = "1-4"
+	},
+/turf/open/floor/engine,
+/area/space)
+"y" = (
+/obj/machinery/hvrc/capacitor,
+/obj/structure/cable/yellow{
+	icon_state = "0-2"
+	},
+/turf/open/floor/engine,
+/area/space)
+"A" = (
+/obj/structure/cable/yellow{
+	icon_state = "1-8"
+	},
+/turf/open/floor/engine,
+/area/space)
+"G" = (
+/obj/structure/cable/yellow{
+	icon_state = "2-8"
+	},
+/turf/open/floor/engine,
+/area/space)
+"L" = (
+/obj/machinery/hvrc/core,
+/turf/open/floor/engine,
+/area/space)
+"N" = (
+/obj/machinery/power/smes/magical,
+/obj/structure/cable/yellow{
+	icon_state = "0-4"
+	},
+/turf/open/floor/engine,
+/area/space)
+"O" = (
+/obj/machinery/computer/hvrc_control,
+/turf/open/floor/engine,
+/area/space)
+"W" = (
+/obj/structure/cable/yellow{
+	icon_state = "1-8"
+	},
+/obj/structure/cable/yellow{
+	icon_state = "4-8"
+	},
+/turf/open/floor/engine,
+/area/space)
+"X" = (
+/obj/machinery/hvrc/rail,
+/turf/open/floor/engine,
+/area/space)
+
+(1,1,1) = {"
+a
+a
+a
+N
+N
+N
+"}
+(2,1,1) = {"
+a
+L
+a
+G
+t
+A
+"}
+(3,1,1) = {"
+a
+X
+a
+a
+s
+a
+"}
+(4,1,1) = {"
+a
+X
+a
+a
+s
+a
+"}
+(5,1,1) = {"
+a
+X
+a
+y
+W
+a
+"}
+(6,1,1) = {"
+a
+X
+a
+y
+A
+a
+"}
+(7,1,1) = {"
+a
+X
+a
+O
+a
+a
+"}
+(8,1,1) = {"
+a
+o
+a
+a
+a
+a
+"}
