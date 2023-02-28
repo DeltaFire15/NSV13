@@ -39,7 +39,7 @@ Looking for weaknesses in our core structure here will yield you nothing. Do not
 
 /obj/item/clothing/mask/gas/obsolescent/Initialize()
 	. = ..()
-	soundloop = new /datum/looping_sound/gasmask/obsolescent(list(src), FALSE)
+	soundloop = new /datum/looping_sound/gasmask/obsolescent(src, FALSE)
 
 /obj/item/organ/emotional_inhibitor
 	name = "Emotional inhibitor"
@@ -328,14 +328,33 @@ Looking for weaknesses in our core structure here will yield you nothing. Do not
 /mob/living/carbon/proc/remove_obsolescent()
 	REMOVE_TRAIT(src, TRAIT_OBSOLESCENT, OBSOLESCENT_TRAIT)
 
+#define OBSOLESCENT_PREFIXES list("Unimatrix", "Node", "Drone", "Unit", "Subprocessor", "Subjunction", "Terminus", "Network", "Machine")
+
 //Conversion
 
 /datum/disease/advance/obsolescent
-	name = "Blight of the obsolescents"
-	mutable = TRUE
+	name = "/&$/$/\"§(\"/%$(\"%!/&$\")\")"
+	mutable = FALSE
 	form = "Unknown"
-	agent = "Nanotechnology"
-	symptoms = list(new /datum/symptom/vitiligo, new /datum/symptom/heal/coma, new /datum/symptom/nano_destroy, new /datum/symptom/viraladaptation, new /datum/symptom/oxygen/obsolescent)
+	agent = "UNKNOWN"
+	faltered = TRUE
+	max_stages = 5
+	infectivity = 0
+	resistance = 9999
+	transmission = 9999
+	process_dead = TRUE
+	disease_flags = CAN_CARRY | CURABLE //Notably, no can_resist.
+	cures = list(/datum/reagent/napalm, /datum/reagent/clf3, /datum/reagent/medicine/pyroxadone)
+	needs_all_cures = TRUE
+	cure_text = "Napalm together with Chlorine Trifluoride in a pyroxadone solution"
+
+/datum/disease/advance/obsolescent/New()
+	symptoms = list(new /datum/symptom/heal/coma, new /datum/symptom/nano_destroy, new /datum/symptom/oxygen/obsolescent, new /datum/symptom/nanoconversion) //OBSOL-WIP - replace regen coma with something in the nanoconversion symptom itself.
+	return ..()
+
+//We already have our fun cure.
+/datum/disease/advance/obsolescent/GenerateCure()
+	return
 
 /datum/antagonist/obsolescent
 	name = "Obsolescent drone"
@@ -351,9 +370,76 @@ Looking for weaknesses in our core structure here will yield you nothing. Do not
 //We do not breathe.
 /datum/symptom/oxygen/obsolescent
 	name = "Automated life-support"
+	desc = "Contained nanoparticles oxygenate the bloodstream even in environments completely void of it, via currently unknown means."
 	resistance = 0
 	stage_speed = 0
 	regenerate_blood = TRUE
+	naturally_occuring = FALSE
+
+/datum/symptom/nanoconversion
+	name = "UNKNOWN"
+	desc = "Contained nanoparticles appear to have some kind of significant impact on core structure of the body."
+	resistance = 9999
+	transmission = 9999
+	stage_speed = 0
+	severity = 50
+	naturally_occuring = FALSE
+	var/old_name
+	var/nanoconverted = FALSE
+
+/datum/symptom/nanoconversion/on_stage_change(new_stage, datum/disease/advance/A)
+	. = ..()
+	if(!.)
+		return
+	if(!nanoconverted && new_stage == A.max_stages)
+		obsolescent_convert(A)
+		A.disease_flags = CAN_CARRY
+		A.cures = list()
+		A.cure_text = "Swift Death"
+
+/datum/symptom/nanoconversion/End(datum/disease/advance/A)
+	if(!nanoconverted)
+		return ..()
+	var/mob/living/carbon/host = A.affected_mob
+	host.fully_replace_character_name(newname = old_name)
+	host.mind?.remove_antag_datum(/datum/antagonist/obsolescent)
+	host.faction -= "obsolescent"
+	host.language_holder.remove_blocked_language(subtypesof(/datum/language) - /datum/language/machine, LANGUAGE_BORG)
+	host.language_holder.remove_language(/datum/language/machine, TRUE, TRUE, LANGUAGE_BORG)
+	REMOVE_TRAIT(host, TRAIT_OBSOLESCENT, OBSOLESCENT_TRAIT)
+	for(var/limb_slot in list(BODY_ZONE_L_ARM, BODY_ZONE_R_ARM, BODY_ZONE_L_LEG, BODY_ZONE_R_LEG))
+		var/obj/item/bodypart/part = host.get_bodypart(limb_slot)
+		if(part.bodytype & BODYTYPE_ROBOTIC)
+			part.dismember(BURN)
+
+	return ..()
+
+/datum/symptom/nanoconversion/proc/obsolescent_convert(datum/disease/advance/A)
+	var/mob/living/carbon/host = A.affected_mob
+	old_name = host.real_name
+	host.fully_replace_character_name(newname = "[pick(OBSOLESCENT_PREFIXES)] [rand(0, 999)]") //OBSOL-WIP - WARNING, irreversible operation on convert - preserve old charname somewhere so this doesn't fuck people on deconvert!
+	host.mind?.add_antag_datum(/datum/antagonist/obsolescent)
+	host.faction += "obsolescent"
+	host.language_holder.grant_language(/datum/language/machine, TRUE, TRUE, LANGUAGE_BORG) //OBSOL-WIP - add deconversion on disease removal
+	host.language_holder.add_blocked_language(subtypesof(/datum/language) - /datum/language/machine, LANGUAGE_BORG) //Block all languages except for machine;TEach them machine.
+	ADD_TRAIT(host, TRAIT_OBSOLESCENT, OBSOLESCENT_TRAIT)
+	nanoconverted = TRUE
+	if(ishuman(host))
+		var/mob/living/carbon/human/H = host
+		H.skin_tone = "albino"
+		H.update_body(0)
+	for(var/limb_slot in list(BODY_ZONE_L_ARM, BODY_ZONE_R_ARM, BODY_ZONE_L_LEG, BODY_ZONE_R_LEG))
+		var/obj/item/bodypart/prosthetic = null
+		switch(limb_slot)
+			if(BODY_ZONE_L_ARM)
+				prosthetic = new/obj/item/bodypart/l_arm/robot(host)
+			if(BODY_ZONE_R_ARM)
+				prosthetic = new/obj/item/bodypart/r_arm/robot(host)
+			if(BODY_ZONE_L_LEG)
+				prosthetic = new/obj/item/bodypart/l_leg/robot(host)
+			if(BODY_ZONE_R_LEG)
+				prosthetic = new/obj/item/bodypart/r_leg/robot(host)
+		prosthetic.replace_limb(host)
 
 /obj/machinery/obsolescent_conversion
 	name = "conversion chamber"
@@ -412,35 +498,14 @@ Looking for weaknesses in our core structure here will yield you nothing. Do not
 	ready = TRUE
 	playsound(src, 'nsv13/sound/voice/obsolescents/chamberopen.ogg', 100, FALSE)
 
-#define OBSOLESCENT_PREFIXES list("Unimatrix", "Node", "Drone", "Unit", "Subprocessor", "Subjunction", "Terminus", "Network", "Machine")
-
 /datum/language_holder/obsolescent
 	understood_languages = list(/datum/language/machine = LANGUAGE_MIND)
 	spoken_languages = list(/datum/language/machine = LANGUAGE_MIND)
 
 /mob/living/carbon/proc/make_obsolescent()
-	fully_replace_character_name(real_name, "[pick(OBSOLESCENT_PREFIXES)] [rand(0, 999)]") //OBSOL-WIP - WARNING, irreversible operation on convert - preserve old charname somewhere so this doesn't fuck people on deconvert!
-	mind?.add_antag_datum(/datum/antagonist/obsolescent)
-	language_holder.add_blocked_language(subtypesof(/datum/language) - /datum/language/machine, LANGUAGE_BORG) //Block all languages except for machine;TEach them machine.
 	var/datum/disease/advance/obsolescent_virus = new /datum/disease/advance/obsolescent()
-	src.ForceContractDisease(obsolescent_virus, FALSE, TRUE)
-	ADD_TRAIT(src, TRAIT_OBSOLESCENT, OBSOLESCENT_TRAIT)
-	if(ishuman(src))
-		var/mob/living/carbon/human/H = src
-		H.skin_tone = "albino"
-		H.update_body(0)
-	for(var/limb_slot in list(BODY_ZONE_L_ARM, BODY_ZONE_R_ARM, BODY_ZONE_L_LEG, BODY_ZONE_R_LEG))
-		var/obj/item/bodypart/prosthetic = null
-		switch(limb_slot)
-			if(BODY_ZONE_L_ARM)
-				prosthetic = new/obj/item/bodypart/l_arm/robot(src)
-			if(BODY_ZONE_R_ARM)
-				prosthetic = new/obj/item/bodypart/r_arm/robot(src)
-			if(BODY_ZONE_L_LEG)
-				prosthetic = new/obj/item/bodypart/l_leg/robot(src)
-			if(BODY_ZONE_R_LEG)
-				prosthetic = new/obj/item/bodypart/r_leg/robot(src)
-		prosthetic.replace_limb(src)
+	if(src.ForceContractDisease(obsolescent_virus, FALSE, TRUE))
+		obsolescent_virus.update_stage(obsolescent_virus.max_stages)
 
 /obj/machinery/obsolescent_gear
 	name = "Prosthetic attacher"
@@ -595,7 +660,7 @@ Looking for weaknesses in our core structure here will yield you nothing. Do not
 	melee_damage = 5
 	attacktext = "nips"
 	attack_sound = 'sound/weapons/bite.ogg'
-	faction = list("creature")
+	faction = list("obsolescent")
 	obj_damage = 5
 	environment_smash = ENVIRONMENT_SMASH_NONE
 	speak_emote = list("chirrups")
