@@ -80,7 +80,7 @@ Looking for weaknesses in our core structure here will yield you nothing. Do not
 	name = "Exoskeleton"
 	desc = "Encases weak biologics."
 	icon = 'nsv13/icons/obj/clothing/suits.dmi'
-	alternate_worn_icon = 'nsv13/icons/mob/suit.dmi'
+	worn_icon = 'nsv13/icons/mob/suit.dmi'
 	icon_state = "obsolescent"
 	item_state = "obsolescent"
 	body_parts_covered = CHEST
@@ -93,30 +93,10 @@ Looking for weaknesses in our core structure here will yield you nothing. Do not
 	equip_delay_other = 40
 	max_integrity = 250
 	armor = list("melee" = 40, "bullet" = 98, "laser" = 50, "energy" = 30, "bomb" = 10, "bio" = 100, "rad" = 100, "fire" = 60, "acid" = 60)
-	var/mob/listeningTo = null
-	var/stomp_cooldown_time = 0.3 SECONDS
-	var/current_cooldown = 0
+	move_sound = list('nsv13/sound/effects/obsolescent_step.ogg')
 
-/obj/item/clothing/suit/space/obsolescent/proc/on_mob_move()
-	var/mob/living/carbon/human/H = loc
-	if(!istype(H) || H.wear_suit != src)
-		return
-	if(current_cooldown <= world.time) //Deliberately not using a timer here as that would spam create tonnes of timer objects, hogging memory.
-		current_cooldown = world.time + stomp_cooldown_time
-		playsound(src, 'nsv13/sound/effects/obsolescent_step.ogg', 50, TRUE)
-
-/obj/item/clothing/suit/space/obsolescent/equipped(mob/user, slot)
-	. = ..()
-	if(slot != SLOT_WEAR_SUIT)
-		if(listeningTo)
-			UnregisterSignal(listeningTo, COMSIG_MOVABLE_MOVED)
-		return
-	if(listeningTo == user)
-		return
-	if(listeningTo)
-		UnregisterSignal(listeningTo, COMSIG_MOVABLE_MOVED)
-	RegisterSignal(user, COMSIG_MOVABLE_MOVED, .proc/on_mob_move)
-	listeningTo = user
+/obj/item/clothing/suit/space/obsolescent/on_mob_move()
+	return ..() //OBSOL-WIP - make this here reduce their ability cooldowns -> suit burnt off = ability cooldown lockout.
 
 /obj/item/clothing/suit/space/obsolescent/dropped()
 	. = ..()
@@ -143,10 +123,9 @@ Looking for weaknesses in our core structure here will yield you nothing. Do not
 	name = "Cranial mount"
 	desc = "Past identities are to be forgotten."
 	icon = 'nsv13/icons/obj/clothing/hats.dmi'
-	alternate_worn_icon = 'nsv13/icons/mob/head.dmi'
+	worn_icon = 'nsv13/icons/mob/head.dmi'
 	icon_state = "obsolescent"
 	item_state = "obsolescent"
-	item_color = "obsolescent"
 	armor = list("melee" = 20, "bullet" = 98, "laser" = 10, "energy" = 10, "bomb" = 70, "bio" = 100, "rad" = 100, "fire" = 60, "acid" = 100)
 	resistance_flags = FIRE_PROOF
 	heat_protection = HEAD
@@ -374,7 +353,6 @@ Looking for weaknesses in our core structure here will yield you nothing. Do not
 	name = "Automated life-support"
 	resistance = 0
 	stage_speed = 0
-	emote = "gasp"
 	regenerate_blood = TRUE
 
 /obj/machinery/obsolescent_conversion
@@ -437,15 +415,15 @@ Looking for weaknesses in our core structure here will yield you nothing. Do not
 #define OBSOLESCENT_PREFIXES list("Unimatrix", "Node", "Drone", "Unit", "Subprocessor", "Subjunction", "Terminus", "Network", "Machine")
 
 /datum/language_holder/obsolescent
-	only_speaks_language = /datum/language/machine
-	languages = list(/datum/language/machine)
+	understood_languages = list(/datum/language/machine = LANGUAGE_MIND)
+	spoken_languages = list(/datum/language/machine = LANGUAGE_MIND)
 
 /mob/living/carbon/proc/make_obsolescent()
-	fully_replace_character_name(real_name, "[pick(OBSOLESCENT_PREFIXES)] [rand(0, 999)]")
+	fully_replace_character_name(real_name, "[pick(OBSOLESCENT_PREFIXES)] [rand(0, 999)]") //OBSOL-WIP - WARNING, irreversible operation on convert - preserve old charname somewhere so this doesn't fuck people on deconvert!
 	mind?.add_antag_datum(/datum/antagonist/obsolescent)
-	language_holder	= new /datum/language_holder/obsolescent(src) //We do not care to learn your languages.
+	language_holder.add_blocked_language(subtypesof(/datum/language) - /datum/language/machine, LANGUAGE_BORG) //Block all languages except for machine;TEach them machine.
 	var/datum/disease/advance/obsolescent_virus = new /datum/disease/advance/obsolescent()
-	obsolescent_virus.try_infect(src)
+	src.ForceContractDisease(obsolescent_virus, FALSE, TRUE)
 	ADD_TRAIT(src, TRAIT_OBSOLESCENT, OBSOLESCENT_TRAIT)
 	if(ishuman(src))
 		var/mob/living/carbon/human/H = src
@@ -504,13 +482,13 @@ Looking for weaknesses in our core structure here will yield you nothing. Do not
 			slot = "hands"
 		if("cranial_mount")
 			gear_type = /obj/item/clothing/head/helmet/space/obsolescent
-			slot = SLOT_HEAD
+			slot = ITEM_SLOT_HEAD
 		if("shroud")
 			gear_type = /obj/item/clothing/mask/gas/obsolescent
-			slot = SLOT_WEAR_MASK
+			slot = ITEM_SLOT_MASK
 		if("suit")
 			gear_type = /obj/item/clothing/suit/space/obsolescent
-			slot = SLOT_WEAR_SUIT
+			slot = ITEM_SLOT_OCLOTHING
 	var/obj/item/gear = new gear_type(src)
 	if(slot == "hands")
 		if(!user.put_in_hands(gear))
@@ -562,7 +540,7 @@ Looking for weaknesses in our core structure here will yield you nothing. Do not
 		radio_connection = SSradio.add_object(src, FREQ_OBSOLESCENTS, RADIO_OBSOLESCENTS)
 
 /obj/machinery/obsolescent_maturation/process()
-	if(!is_operational())
+	if(!is_operational)
 		return
 	if(!reagents.has_reagent(/datum/reagent/medicine/synthflesh, cost_per_growth))
 		return FALSE

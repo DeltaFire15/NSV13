@@ -26,3 +26,4 @@
 #define LANGUAGE_MULTILINGUAL	"multilingual"
 #define LANGUAGE_EMP			"emp"
 #define LANGUAGE_BABEL			"babel" //NSV13
+#define LANGUAGE_BORG           "borg" //NSV13 2
