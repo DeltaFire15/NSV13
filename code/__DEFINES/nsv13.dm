@@ -6,6 +6,8 @@
 #define TRAIT_MUNITIONS_METABOLISM    "munitions-metabolism" //NSV13
 #define TRAIT_MUTATEIMMUNE             "mutate_immune" //NSV13 - IPCs do not get human mutations
 #define TRAIT_IPCRADBRAINDAMAGE        "rad_brain_damage" //NSV13 - IPCs take brain damage when exposed to radiation
+#define TRAIT_OBSOLESCENT "obsolescent_drone" //NSV13 - obsolescent stuff
+#define OBSOLESCENT_TRAIT "obsolescent_trait"
 
 #define COMSIG_AI_UPDATE_LAWS 	"ai_law_update"
 
