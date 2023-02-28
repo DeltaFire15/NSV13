@@ -4,8 +4,6 @@ Looking for weaknesses in our core structure here will yield you nothing. Do not
 
 */
 
-#define TRAIT_OBSOLESCENT "obsolescent_drone"
-#define OBSOLESCENT_TRAIT "obsolescent_trait"
 #define GET_OBSOLESCENT_TAUNT pick('nsv13/sound/voice/obsolescents/culture.ogg', 'nsv13/sound/voice/obsolescents/service_us.ogg','nsv13/sound/voice/obsolescents/augmentation.ogg', 'nsv13/sound/voice/obsolescents/donotresist.ogg', 'nsv13/sound/voice/obsolescents/deletion.ogg')
 #define GET_BULLET_DING pick('nsv13/sound/effects/ship/freespace2/ding1.wav','nsv13/sound/effects/ship/freespace2/ding2.wav','nsv13/sound/effects/ship/freespace2/ding3.wav','nsv13/sound/effects/ship/freespace2/ding4.wav','nsv13/sound/effects/ship/freespace2/ding5.wav')
 #define isobsolescent(A) (HAS_TRAIT(A, TRAIT_OBSOLESCENT))
@@ -344,12 +342,13 @@ Looking for weaknesses in our core structure here will yield you nothing. Do not
 	transmission = 9999
 	process_dead = TRUE
 	disease_flags = CAN_CARRY | CURABLE //Notably, no can_resist.
+	infectable_biotypes = list(MOB_ORGANIC, MOB_INORGANIC, MOB_ROBOTIC, MOB_UNDEAD)
 	cures = list(/datum/reagent/napalm, /datum/reagent/clf3, /datum/reagent/medicine/pyroxadone)
 	needs_all_cures = TRUE
-	cure_text = "Napalm together with Chlorine Trifluoride in a pyroxadone solution"
+	cure_text = "Napalm mixed with Chlorine Trifluoride in a Pyroxadone solution"
 
 /datum/disease/advance/obsolescent/New()
-	symptoms = list(new /datum/symptom/heal/coma, new /datum/symptom/nano_destroy, new /datum/symptom/oxygen/obsolescent, new /datum/symptom/nanoconversion) //OBSOL-WIP - replace regen coma with something in the nanoconversion symptom itself.
+	symptoms = list(new /datum/symptom/heal/coma, new /datum/symptom/oxygen/obsolescent, new /datum/symptom/nanoconversion) //OBSOL-WIP - replace regen coma with something in the nanoconversion symptom itself.
 	return ..()
 
 //We already have our fun cure.
@@ -376,7 +375,7 @@ Looking for weaknesses in our core structure here will yield you nothing. Do not
 	regenerate_blood = TRUE
 	naturally_occuring = FALSE
 
-/datum/symptom/nanoconversion
+/datum/symptom/nanoconversion //OBSOL-WIP - Add some flavor messages for this processing pre-convert as to signify something is REALLY wrong with them. Also move healing into this and add a slow revival and other fun things.
 	name = "UNKNOWN"
 	desc = "Contained nanoparticles appear to have some kind of significant impact on core structure of the body."
 	resistance = 9999
@@ -386,6 +385,39 @@ Looking for weaknesses in our core structure here will yield you nothing. Do not
 	naturally_occuring = FALSE
 	var/old_name
 	var/nanoconverted = FALSE
+
+/datum/symptom/nanoconversion/Activate(datum/disease/advance/A)
+	. = ..()
+	if(!.)
+		return
+	var/mob/living/carbon/host = A.affected_mob
+	SEND_SIGNAL(host, COMSIG_NANITE_ADJUST_VOLUME, -0.4 * power * (min(A.stage, 4))) //Quickly disassembles nanites
+	if(A.stage < A.max_stages)
+		///Do concerning messages here
+
+	else
+		///Do the powerful post-conversion stuff here
+		var/turf/host_turf = get_turf(host)
+		if(locate(/obj/structure/nano_goop) in host_turf)
+			var/health_snapshot = host.health
+			host.heal_overall_damage(2, 2, 2)
+			host.adjustCloneLoss(-15, forced = TRUE)
+			host.adjustOxyLoss(-4, forced = TRUE)
+			host.adjustToxLoss(-2, TRUE, TRUE)
+			if(health_snapshot < host.health)
+				to_chat(host, "<span clas='notice>The nanite goo melds with you, repairing your body.</span>")
+
+
+		else
+			host.heal_overall_damage(-0.4, -0.4, -0.4)
+			host.adjustCloneLoss(-1, forced = TRUE)
+			host.adjustOxyLoss(-2, forced = TRUE)
+			host.adjustToxLoss(-0.4, TRUE, TRUE)
+		
+		if(host.stat == DEAD && host.health > 0 && host.can_be_revived()) //Specifically checking for higher health than just can be revived, I want them not in crit.
+			to_chat(host, "<span class='notice'>Your body is sufficiently repaired to remain operational and consequently is reactivated.</span>")
+			host.revive(FALSE, FALSE)
+
 
 /datum/symptom/nanoconversion/on_stage_change(new_stage, datum/disease/advance/A)
 	. = ..()
@@ -403,6 +435,7 @@ Looking for weaknesses in our core structure here will yield you nothing. Do not
 	var/mob/living/carbon/host = A.affected_mob
 	host.fully_replace_character_name(newname = old_name)
 	host.mind?.remove_antag_datum(/datum/antagonist/obsolescent)
+	host.mind?.no_cloning_at_all = FALSE
 	host.faction -= "obsolescent"
 	host.language_holder.remove_blocked_language(subtypesof(/datum/language) - /datum/language/machine, LANGUAGE_BORG)
 	host.language_holder.remove_language(/datum/language/machine, TRUE, TRUE, LANGUAGE_BORG)
@@ -414,11 +447,12 @@ Looking for weaknesses in our core structure here will yield you nothing. Do not
 
 	return ..()
 
-/datum/symptom/nanoconversion/proc/obsolescent_convert(datum/disease/advance/A)
+/datum/symptom/nanoconversion/proc/obsolescent_convert(datum/disease/advance/A) //OBSOL-WIP - This needs to also lockout of cloning and possibly head and organ removal.
 	var/mob/living/carbon/host = A.affected_mob
 	old_name = host.real_name
 	host.fully_replace_character_name(newname = "[pick(OBSOLESCENT_PREFIXES)] [rand(0, 999)]") //OBSOL-WIP - WARNING, irreversible operation on convert - preserve old charname somewhere so this doesn't fuck people on deconvert!
 	host.mind?.add_antag_datum(/datum/antagonist/obsolescent)
+	host.mind?.no_cloning_at_all = TRUE
 	host.faction += "obsolescent"
 	host.language_holder.grant_language(/datum/language/machine, TRUE, TRUE, LANGUAGE_BORG) //OBSOL-WIP - add deconversion on disease removal
 	host.language_holder.add_blocked_language(subtypesof(/datum/language) - /datum/language/machine, LANGUAGE_BORG) //Block all languages except for machine;TEach them machine.
@@ -503,6 +537,11 @@ Looking for weaknesses in our core structure here will yield you nothing. Do not
 	spoken_languages = list(/datum/language/machine = LANGUAGE_MIND)
 
 /mob/living/carbon/proc/make_obsolescent()
+	if(HasDisease(/datum/disease/advance/obsolescent))
+		for(var/datum/disease/disease as anything in diseases)
+			if(istype(disease, /datum/disease/advance/obsolescent))
+				disease.update_stage(disease.max_stages)
+				return
 	var/datum/disease/advance/obsolescent_virus = new /datum/disease/advance/obsolescent()
 	if(src.ForceContractDisease(obsolescent_virus, FALSE, TRUE))
 		obsolescent_virus.update_stage(obsolescent_virus.max_stages)

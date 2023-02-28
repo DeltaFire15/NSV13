@@ -600,6 +600,8 @@ This proc is to be used when someone gets stuck in an overmap ship, gauss, WHATE
 		proj.firer = gunner
 	else
 		proj.firer = src
+	LAZYINITLIST(proj.impacted) //The spawn call after this might be causing some issues so the list should exist before async actions.
+	
 	spawn()
 		proj.preparePixelProjectileOvermap(target, src, null, round((rand() - 0.5) * proj.spread), lateral=lateral)
 		proj.fire()
