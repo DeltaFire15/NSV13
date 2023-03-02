@@ -6,7 +6,6 @@ Looking for weaknesses in our core structure here will yield you nothing. Do not
 
 #define GET_OBSOLESCENT_TAUNT pick('nsv13/sound/voice/obsolescents/culture.ogg', 'nsv13/sound/voice/obsolescents/service_us.ogg','nsv13/sound/voice/obsolescents/augmentation.ogg', 'nsv13/sound/voice/obsolescents/donotresist.ogg', 'nsv13/sound/voice/obsolescents/deletion.ogg')
 #define GET_BULLET_DING pick('nsv13/sound/effects/ship/freespace2/ding1.wav','nsv13/sound/effects/ship/freespace2/ding2.wav','nsv13/sound/effects/ship/freespace2/ding3.wav','nsv13/sound/effects/ship/freespace2/ding4.wav','nsv13/sound/effects/ship/freespace2/ding5.wav')
-#define isobsolescent(A) (HAS_TRAIT(A, TRAIT_OBSOLESCENT))
 #define RADIO_OBSOLESCENTS "obsolescents_collective"
 #define FREQ_OBSOLESCENTS 666
 
@@ -209,12 +208,11 @@ Looking for weaknesses in our core structure here will yield you nothing. Do not
 		var/inputAmount = input(user, "How much of [I] do you want to input into [src]?", "Num", null) as null|num
 		if(!inputAmount)
 			return
-		inputAmount = CLAMP(inputAmount, 0, S.get_amount())
+		inputAmount = CLAMP(inputAmount, 0, min(S.get_amount(), CEILING((max_material - material_stored) * 0.1, 1)))
 		if(inputAmount <= 0)
 			return
 		S.use(inputAmount)
-		material_stored += inputAmount * 10
-		material_stored = CLAMP(material_stored, 0, max_material)
+		material_stored = min(max_material, material_stored + inputAmount*10)
 		to_chat(user, "<span class='notice'>You slot [inputAmount] sheets of [I] into [src]...</span>")
 
 /obj/item/melee/obsolescent/examine(mob/user)
@@ -232,7 +230,8 @@ Looking for weaknesses in our core structure here will yield you nothing. Do not
 		"conversion chamber" = image(icon = 'nsv13/icons/obj/machines/soul_sucker.dmi', icon_state = "soulremover"),
 		"prosthetic vendor" = image(icon = 'nsv13/icons/obj/machines/soul_sucker.dmi', icon_state = "geargiver"),
 		"maturation chamber" = image(icon = 'nsv13/icons/obj/machines/soul_sucker.dmi', icon_state = "maturation_0"),
-		"cyberbite" = image(icon = 'nsv13/icons/mob/animal.dmi', icon_state = "minisoulsucker")
+		"cyberbite" = image(icon = 'nsv13/icons/mob/animal.dmi', icon_state = "minisoulsucker"),
+		"support node" = image(icon = 'icons/obj/smooth_structures/alien/weeds1.dmi', icon_state = "weeds") ///OBSOL-WIP - TEMP sprite, replace with actual sprite when done!
 		)
 	var/chosenGear = show_radial_menu(user, src, options, custom_check = CALLBACK(src, .proc/check_menu, user), require_near = TRUE, tooltips = TRUE)
 	if(!check_menu(user))
@@ -247,11 +246,23 @@ Looking for weaknesses in our core structure here will yield you nothing. Do not
 			machinePath = /obj/machinery/obsolescent_maturation
 		if("cyberbite")
 			machinePath = /mob/living/simple_animal/hostile/obsolescent_rat
+		if("support node")
+			var/turf/owner_turf = get_turf(user)
+			if(locate(/obj/structure/nano_goop) in owner_turf)
+				to_chat(user, "<span class='warning'>There's already support structure here.</span>")
+				return FALSE
+			machinePath = /obj/structure/nano_goop/core
 	if(!machinePath)
 		return
 	playsound(src, 'nsv13/sound/effects/obsolescent_build.ogg', 100, TRUE)
 	if(!do_after(user, 5 SECONDS, target=get_turf(src)) || !check_menu(user))
 		return FALSE
+	switch(chosenGear) //recheck
+		if("support node")
+			var/turf/owner_turf = get_turf(user)
+			if(locate(/obj/structure/nano_goop) in owner_turf)
+				to_chat(user, "<span class='warning'>There's already support structure here.</span>")
+				return FALSE
 	new machinePath(get_turf(user))
 	material_stored -= cost_per_build
 
@@ -262,7 +273,14 @@ Looking for weaknesses in our core structure here will yield you nothing. Do not
 /obj/item/melee/obsolescent/afterattack(atom/target, mob/user, proximity_flag, click_parameters)
 	. = ..()
 	if(world.time < next_delimb || !proximity_flag)
-		return ..()
+		return
+	if(istype(target, /obj/item/stack/sheet)) //QOL
+		var/obj/item/stack/sheet/sheet = target
+		var/consume = min(sheet.get_amount(), CEILING((max_material - material_stored) * 0.1, 1))
+		material_stored = min(material_stored + consume * 10, max_material)
+		sheet.use(consume)
+		to_chat(user, "<span class='notice'>You assemble [consume] sheets of [sheet] into [src]</span>")
+		return TRUE
 	if(istype(target, /obj/structure/window))
 		visible_message("<span class='warning'>[user] punches clean through [target] with [src]!</span>")
 		target.shake_animation(5)
@@ -270,6 +288,7 @@ Looking for weaknesses in our core structure here will yield you nothing. Do not
 		sleep(0.2)
 		qdel(target)
 		next_delimb = world.time + 5 SECONDS
+		return TRUE
 	if(istype(target, /turf/closed/wall))
 		visible_message("<span class='warning'>[user] slams [target] with an immense force!</span>")
 		playsound(src, 'sound/effects/meteorimpact.ogg', 100, 1)
@@ -279,49 +298,59 @@ Looking for weaknesses in our core structure here will yield you nothing. Do not
 			W.dismantle_wall(1)
 			var/atom/movable/girder = new /obj/structure/girder/displaced(W)
 			var/atom/throw_target = get_edge_target_turf(girder, user.dir)
+			girder.visible_message("<span class='warning'>[girder] is thrown away with a huge force!</span>")
 			girder.throw_at(throw_target, rand(2,7), rand(3,6))
-			visible_message("<span class='warning'>[girder] is thrown away with a huge force!</span>")
 			next_delimb = world.time + 5 SECONDS
 			playsound(src, 'nsv13/sound/voice/obsolescents/obstruction.ogg', 100, FALSE)
+			return TRUE
+
+/obj/item/melee/obsolescent/pre_attack(atom/A, mob/living/user, params)
+	if(istype(A, /obj/structure/nano_goop))
+		return //Clickcatch misclicks with the prosthetic..
+	return ..()
 
 /obj/item/melee/obsolescent/attack(mob/living/M, mob/living/user)
 	. = ..()
-	if(world.time >= next_delimb)
-		if(!iscarbon(M))
+	if(world.time < next_delimb)
+		return
+	
+	if(!iscarbon(M))
+		return
+	if(user.grab_state < GRAB_AGGRESSIVE)
+		user.start_pulling(M, supress_message = FALSE)
+		user.setGrabState(GRAB_AGGRESSIVE)
+		M.Paralyze(7.5 SECONDS) //Longer than a clown PDA
+		playsound(src, 'sound/items/jaws_pry.ogg', 100, TRUE)
+		var/list/all_items = M.GetAllContents()
+		for(var/obj/I in all_items)
+			if(istype(I, /obj/item/radio/))
+				var/obj/item/radio/r = I
+				r.listening = FALSE
+				if(!istype(I, /obj/item/radio/headset))
+					r.broadcasting = FALSE
+		return TRUE
+	else
+		if(!iscarbon(user.pulling))
 			return
-		if(user.grab_state < GRAB_AGGRESSIVE)
-			user.start_pulling(M, supress_message = FALSE)
-			user.setGrabState(GRAB_AGGRESSIVE)
-			M.Paralyze(7.5 SECONDS) //Longer than a clown PDA
-			playsound(src, 'sound/items/jaws_pry.ogg', 100, TRUE)
-			var/list/all_items = M.GetAllContents()
-			for(var/obj/I in all_items)
-				if(istype(I, /obj/item/radio/))
-					var/obj/item/radio/r = I
-					r.listening = FALSE
-					if(!istype(I, /obj/item/radio/headset))
-						r.broadcasting = FALSE
-		else
-			if(!iscarbon(user.pulling))
-				return
-			var/mob/living/carbon/H = user.pulling
-			var/list/blacklist = H.get_missing_limbs()
-			var/list/full = list(BODY_ZONE_R_ARM, BODY_ZONE_L_ARM, BODY_ZONE_R_LEG, BODY_ZONE_L_LEG) //You can't rip their chest or head off.
-			for(var/X in full)
-				if(X in blacklist)
-					full -= X
-			if(!full.len)
-				return
-			var/obj/item/bodypart/affecting = H.get_bodypart(pick(full))
-			to_chat(user, "<span class='danger'><B>[user] rips [H]'s [affecting] off!</B></span>")
-			playsound(src, 'nsv13/sound/effects/obsolescent_rip.ogg', 80, FALSE)
-			affecting.dismember(damtype)
-			H.shake_animation(7)
-			affecting.shake_animation(7)
-			H.emote("scream")
-			H.update_damage_overlays()
-			to_chat(user, "<span class='boldnotice'>Servos recharging. Full power will be regained in 5 seconds.</span>")
-			next_delimb = world.time + 5 SECONDS
+		var/mob/living/carbon/H = user.pulling
+		var/list/blacklist = H.get_missing_limbs()
+		var/list/full = list(BODY_ZONE_R_ARM, BODY_ZONE_L_ARM, BODY_ZONE_R_LEG, BODY_ZONE_L_LEG) //You can't rip their chest or head off.
+		for(var/X in full)
+			if(X in blacklist)
+				full -= X
+		if(!full.len)
+			return
+		var/obj/item/bodypart/affecting = H.get_bodypart(pick(full))
+		to_chat(user, "<span class='danger'><B>[user] rips [H]'s [affecting] off!</B></span>")
+		playsound(src, 'nsv13/sound/effects/obsolescent_rip.ogg', 80, FALSE)
+		affecting.dismember(damtype)
+		H.shake_animation(7)
+		affecting.shake_animation(7)
+		H.emote("scream")
+		H.update_damage_overlays()
+		to_chat(user, "<span class='boldnotice'>Servos recharging. Full power will be regained in 5 seconds.</span>")
+		next_delimb = world.time + 5 SECONDS
+		return TRUE
 
 /mob/living/carbon/proc/remove_obsolescent()
 	REMOVE_TRAIT(src, TRAIT_OBSOLESCENT, OBSOLESCENT_TRAIT)
@@ -398,21 +427,28 @@ Looking for weaknesses in our core structure here will yield you nothing. Do not
 	else
 		///Do the powerful post-conversion stuff here
 		var/turf/host_turf = get_turf(host)
+		var/heal_factor = 1
 		if(locate(/obj/structure/nano_goop) in host_turf)
 			var/health_snapshot = host.health
-			host.heal_overall_damage(2, 2, 2)
-			host.adjustCloneLoss(-15, forced = TRUE)
-			host.adjustOxyLoss(-4, forced = TRUE)
-			host.adjustToxLoss(-2, TRUE, TRUE)
+			if(isdead(host))
+				heal_factor = 2 //Goop heal is already strong so it "only" doubles. Still, don't leave dead ones on the goop or they will get back up.
+			host.add_movespeed_modifier(MOVESPEED_ID_OBSOLESCENT_GOOP, TRUE, multiplicative_slowdown= -0.4)
+			host.heal_overall_damage(heal_factor*2, heal_factor*2, heal_factor*2)
+			host.adjustCloneLoss(-heal_factor*7, forced = TRUE)
+			host.adjustOxyLoss(-heal_factor*4, forced = TRUE)
+			host.adjustToxLoss(-heal_factor*2, TRUE, TRUE)
 			if(health_snapshot < host.health)
 				to_chat(host, "<span clas='notice>The nanite goo melds with you, repairing your body.</span>")
 
 
 		else
-			host.heal_overall_damage(-0.4, -0.4, -0.4)
-			host.adjustCloneLoss(-1, forced = TRUE)
-			host.adjustOxyLoss(-2, forced = TRUE)
-			host.adjustToxLoss(-0.4, TRUE, TRUE)
+			if(isdead(host))
+				heal_factor = 4 //Lethal damage sends it into overdrive.
+			host.remove_movespeed_modifier(MOVESPEED_ID_OBSOLESCENT_GOOP, TRUE)
+			host.heal_overall_damage(heal_factor*0.4, heal_factor*0.4, heal_factor*0.4)
+			host.adjustCloneLoss(-heal_factor, forced = TRUE)
+			host.adjustOxyLoss(-heal_factor*2, forced = TRUE)
+			host.adjustToxLoss(-heal_factor*0.4, TRUE, TRUE)
 		
 		if(host.stat == DEAD && host.health > 0 && host.can_be_revived()) //Specifically checking for higher health than just can be revived, I want them not in crit.
 			to_chat(host, "<span class='notice'>Your body is sufficiently repaired to remain operational and consequently is reactivated.</span>")
@@ -439,6 +475,7 @@ Looking for weaknesses in our core structure here will yield you nothing. Do not
 	host.faction -= "obsolescent"
 	host.language_holder.remove_blocked_language(subtypesof(/datum/language) - /datum/language/machine, LANGUAGE_BORG)
 	host.language_holder.remove_language(/datum/language/machine, TRUE, TRUE, LANGUAGE_BORG)
+	host.remove_movespeed_modifier(MOVESPEED_ID_OBSOLESCENT_GOOP)
 	REMOVE_TRAIT(host, TRAIT_OBSOLESCENT, OBSOLESCENT_TRAIT)
 	for(var/limb_slot in list(BODY_ZONE_L_ARM, BODY_ZONE_R_ARM, BODY_ZONE_L_LEG, BODY_ZONE_R_LEG))
 		var/obj/item/bodypart/part = host.get_bodypart(limb_slot)

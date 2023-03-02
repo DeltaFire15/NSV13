@@ -64,8 +64,9 @@ GLOBAL_LIST_INIT(turfs_without_ground, typecacheof(list(
 
 #define ishuman(A) (istype(A, /mob/living/carbon/human))
 
-//NSV13 - knpc helper
+//NSV13 - knpc helper and obsolescents
 #define isknpc(A) (istype(A, /mob/living/carbon/human/ai_boarder))
+#define isobsolescent(A) (HAS_TRAIT(A, TRAIT_OBSOLESCENT))
 //NSV13 end
 
 //Human sub-species
