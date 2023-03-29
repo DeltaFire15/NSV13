@@ -75,7 +75,7 @@ Probably a bad idea to touch, ingest, or worse.
         animate(goop, alpha = 0, time = 2 SECONDS, flags = ANIMATION_END_NOW)
         QDEL_IN(goop, 2 SECONDS)
 
-//The actual goop
+//The actual goop ///OBSOL-WIP - Maybe give them an alpha mask that blocks out part of the legs of mobs? That'd be pretty cool.
 /obj/structure/nano_goop
     name = "weird goop" //Yikes.
     desc = "A mass of grey-blackish goop with a slimy-looking consistency. Looking at it for a bit, you could swear it is slowly moving."
@@ -111,7 +111,7 @@ Probably a bad idea to touch, ingest, or worse.
     . = ..()
     var/turf/goop_turf = get_turf(src)
     alpha = 0
-    animate(src, alpha = 255, time = 3 SECONDS)
+    animate(src, alpha = 255, time = 6 SECONDS)
     RegisterSignal(goop_turf, COMSIG_ATOM_ENTERED, .proc/on_enter)
     for(var/atom/movable/thing in goop_turf)
         on_enter(goop_turf, thing, goop_turf)
@@ -145,21 +145,21 @@ Probably a bad idea to touch, ingest, or worse.
         if(!item.anchored)
             visible_message("<span class='notice'>[item] sinks into [src].</span>", blind_message = "<span class='warning'>You hear weird goopy noises.</span>")
             item.forceMove(src)
-            playsound(src, 'sound/effects/blobattack.ogg', 10, TRUE, -12, ignore_walls = FALSE, falloff_distance = 5)
+            playsound(src, 'sound/effects/blobattack.ogg', 10, TRUE, -12, ignore_walls = FALSE, falloff_distance = 3)
         return
     if(ismachinery(thing))
         var/obj/machinery/machinery = thing
         if(!machinery.anchored)
             visible_message("<span class='notice'>[machinery] sinks into [src].</span>", blind_message = "<span class='warning'>You hear weird goopy noises.</span>")
             machinery.forceMove(src)
-            playsound(src, 'sound/effects/blobattack.ogg', 10, TRUE, -12, ignore_walls = FALSE, falloff_distance = 5)
+            playsound(src, 'sound/effects/blobattack.ogg', 10, TRUE, -12, ignore_walls = FALSE, falloff_distance = 3)
         return
     if(isstructure(thing))
         var/obj/structure/structure = thing
         if(!structure.anchored)
             visible_message("<span class='notice'>[structure] sinks into [src].</span>", blind_message = "<span class='warning'>You hear weird goopy noises.</span>")
             structure.forceMove(src)
-            playsound(src, 'sound/effects/blobattack.ogg', 10, TRUE, -12, ignore_walls = FALSE, falloff_distance = 5)
+            playsound(src, 'sound/effects/blobattack.ogg', 10, TRUE, -12, ignore_walls = FALSE, falloff_distance = 3)
         return
     if(isliving(thing))
         var/mob/living/L = thing

@@ -7,7 +7,7 @@ Looking for weaknesses in our core structure here will yield you nothing. Do not
 #define GET_OBSOLESCENT_TAUNT pick('nsv13/sound/voice/obsolescents/culture.ogg', 'nsv13/sound/voice/obsolescents/service_us.ogg','nsv13/sound/voice/obsolescents/augmentation.ogg', 'nsv13/sound/voice/obsolescents/donotresist.ogg', 'nsv13/sound/voice/obsolescents/deletion.ogg')
 #define GET_BULLET_DING pick('nsv13/sound/effects/ship/freespace2/ding1.wav','nsv13/sound/effects/ship/freespace2/ding2.wav','nsv13/sound/effects/ship/freespace2/ding3.wav','nsv13/sound/effects/ship/freespace2/ding4.wav','nsv13/sound/effects/ship/freespace2/ding5.wav')
 #define RADIO_OBSOLESCENTS "obsolescents_collective"
-#define FREQ_OBSOLESCENTS 666
+#define FREQ_OBSOLESCENTS 666 //OBSOL-WIP - rework this entire thing into working like hierophant message from clockwork cult.
 
 //'nsv13/sound/effects/ship/freespace2/debris.wav' Revival sound!
 
@@ -82,7 +82,7 @@ Looking for weaknesses in our core structure here will yield you nothing. Do not
 	item_state = "obsolescent"
 	body_parts_covered = CHEST
 	cold_protection = CHEST|GROIN
-	min_cold_protection_temperature = ARMOR_MIN_TEMP_PROTECT
+	min_cold_protection_temperature = SPACE_SUIT_MIN_TEMP_PROTECT
 	heat_protection = CHEST|GROIN
 	max_heat_protection_temperature = ARMOR_MAX_TEMP_PROTECT
 	slowdown = 4
@@ -125,7 +125,6 @@ Looking for weaknesses in our core structure here will yield you nothing. Do not
 	item_state = "obsolescent"
 	armor = list("melee" = 20, "bullet" = 98, "laser" = 10, "energy" = 10, "bomb" = 70, "bio" = 100, "rad" = 100, "fire" = 60, "acid" = 100)
 	resistance_flags = FIRE_PROOF
-	heat_protection = HEAD
 	max_heat_protection_temperature = FIRE_IMMUNITY_MAX_TEMP_PROTECT
 	var/datum/radio_frequency/radio_connection = null
 	actions_types = list(/datum/action/item_action/obsolescent_transmit, /datum/action/item_action/obsolescent_taunt)
@@ -213,7 +212,7 @@ Looking for weaknesses in our core structure here will yield you nothing. Do not
 			return
 		S.use(inputAmount)
 		material_stored = min(max_material, material_stored + inputAmount*10)
-		to_chat(user, "<span class='notice'>You slot [inputAmount] sheets of [I] into [src]...</span>")
+		to_chat(user, "<span class='notice'>You slot [inputAmount] sheet[inputAmount != 1 ? "s" : ""] of [I] into [src]...</span>")
 
 /obj/item/melee/obsolescent/examine(mob/user)
 	. = ..()
@@ -272,15 +271,17 @@ Looking for weaknesses in our core structure here will yield you nothing. Do not
 
 /obj/item/melee/obsolescent/afterattack(atom/target, mob/user, proximity_flag, click_parameters)
 	. = ..()
-	if(world.time < next_delimb || !proximity_flag)
+	if(!proximity_flag)
 		return
 	if(istype(target, /obj/item/stack/sheet)) //QOL
 		var/obj/item/stack/sheet/sheet = target
 		var/consume = min(sheet.get_amount(), CEILING((max_material - material_stored) * 0.1, 1))
 		material_stored = min(material_stored + consume * 10, max_material)
 		sheet.use(consume)
-		to_chat(user, "<span class='notice'>You assemble [consume] sheets of [sheet] into [src]</span>")
+		to_chat(user, "<span class='notice'>You assemble [consume] sheet[consume != 1 ? "s" : ""] of [sheet] into [src].</span>")
 		return TRUE
+	if(world.time < next_delimb)
+		return
 	if(istype(target, /obj/structure/window))
 		visible_message("<span class='warning'>[user] punches clean through [target] with [src]!</span>")
 		target.shake_animation(5)
@@ -546,14 +547,15 @@ Looking for weaknesses in our core structure here will yield you nothing. Do not
 	sleep(7 SECONDS)
 	playsound(src, 'nsv13/sound/effects/obsolescent_conversion.ogg', 100, FALSE)
 	sleep(7 SECONDS)
-	var/obj/item/organ/emotional_inhibitor/noSOUL = new /obj/item/organ/emotional_inhibitor(M)
+	var/obj/item/organ/emotional_inhibitor/noSOUL = new /obj/item/organ/emotional_inhibitor(M) //OBSOL-WIP - move organ adding into the disease conversion code!
 	noSOUL.Insert(M)
 	var/obj/item/organ/cyberimp/chest/nutriment/plus/scream = new /obj/item/organ/cyberimp/chest/nutriment/plus(M)
 	scream.Insert(M)
 	var/obj/item/organ/eyes/robotic/xray/newEyes = new /obj/item/organ/eyes/robotic/xray(M)
 	newEyes.Insert(M)
+	M.make_obsolescent()
 	sleep(2 SECONDS)
-	M.revive(TRUE, FALSE)
+	//M.revive(TRUE, FALSE) Lets leave this to the disease for now
 	M.forceMove(get_turf(src))
 	say("Conversion chamber now closed for sterilisation...")
 	playsound(src, 'nsv13/sound/voice/obsolescents/sterilisation.ogg', 100, FALSE)
@@ -661,6 +663,8 @@ Looking for weaknesses in our core structure here will yield you nothing. Do not
 /obj/machinery/obsolescent_maturation/MouseDrop_T(mob/living/M, mob/living/user)
 	. = ..()
 	if(!isobsolescent(user))
+		return FALSE
+	if(!isliving(M))
 		return FALSE
 	if(isobsolescent(M) && M.stat != DEAD)
 		to_chat(user, "<span class='warning'>This drone is still operable. Aborting biomass reclamation.</span>")

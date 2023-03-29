@@ -2,7 +2,7 @@
 /mob/living/proc/HasDisease(datum/disease/D)
 	for(var/thing in diseases)
 		var/datum/disease/DD = thing
-		if(D.IsSame(DD))
+		if(DD.IsSame(D)) //NSV13 - this order allows for additional functionality with this proc.
 			return TRUE
 	return FALSE
 
