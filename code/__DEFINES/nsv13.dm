@@ -41,6 +41,7 @@ GLOBAL_DATUM_INIT(conquest_role_handler, /datum/conquest_role_handler, new)
 #define KPA_TO_PSI(A) (A/6.895)
 #define PSI_TO_KPA(A) (A*6.895)
 #define MEGAWATTS /1e+6
+#define MEGA *1e+6
 
 #define HARDPOINT_SLOT_PRIMARY "Primary"
 #define HARDPOINT_SLOT_SECONDARY "Secondary"

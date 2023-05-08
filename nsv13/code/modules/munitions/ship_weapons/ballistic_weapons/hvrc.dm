@@ -24,22 +24,22 @@ scream at code
 
 //Hmm lets assume something like 100MW charged as base damage for now.. Rails 5, capacitors 1. Base parts, up to x4 from adv parts. Maybe 2 caps for ship designs?
 //Delta from the future here, oh lord yeah this will require more number crunching than I like.
-#define HVRC_POWER_UNITS_PER_DAMAGE 200000 //0.2 MW / point of damage, for now
+#define HVRC_POWER_UNITS_PER_DAMAGE (0.2 MEGA) //0.2 MW / point of damage, for now
 #define HVRC_SPEED_EQUATION(x) (round(CLAMP(12 - (0.837537 * log((0.375504 * x) + 174.207) - 4.32207), 0.1, 12), 0.1)) //Starts at 12 ticks / tile, converges towards 0.1 at ~1GW Aka, this is substracted from the base value. Thank you function equation finder tool.
-#define HVRC_OVERMAP_POWER_PER_RANGE 1000000 //1MW per point of range over its base of 10. Intended to end up pretty high.
+#define HVRC_OVERMAP_POWER_PER_RANGE (1 MEGA) //1MW per point of range over its base of 10. Intended to end up pretty high.
 #define HVRC_OVERMAP_MAX_RANGE 255 //Range can't get increases past this. For now. Although.......
-#define HVRC_MIN_POWER_MEDIUM_DAMAGE 10000000 //10MW min charged to be a medium damtype projectile
-#define HVRC_MIN_POWER_HEAVY_DAMAGE 80000000 //80MW min charged to be a heavy projectile
+#define HVRC_MIN_POWER_MEDIUM_DAMAGE (10 MEGA) //10MW min charged to be a medium damtype projectile
+#define HVRC_MIN_POWER_HEAVY_DAMAGE (80 MEGA) //80MW min charged to be a heavy projectile
 
 //x = (root(2) * root(y) / root(z)) -- x = wanted existance in ticks, y = pixel distance to pass, z = gravity acceleration. Thank you integrals.
 #define HVRC_PARTICLE_TIME_FUNCTION(y, z) (CEILING(((ROOT(1, 2) * ROOT(1, y)) / ROOT(1, z)),1)) //Ratvar ward me from this evil.
 
-#define HVRC_BASE_MAX_CAPACITOR_CHARGERATE 1000000 //1MW / second max chargerate
-#define HVRC_BASE_MAX_CAPACITOR_CHARGE 100000000 //100MW base maxcharge for the moment
-#define HVRC_BASE_MAX_RAIL_DISCHARGE 20000000 //20MW maximum discharge per rail base for now.
+#define HVRC_BASE_MAX_CAPACITOR_CHARGERATE (1 MEGA) //1MW / second max chargerate
+#define HVRC_BASE_MAX_CAPACITOR_CHARGE (100 MEGA) //100MW base maxcharge for the moment
+#define HVRC_BASE_MAX_RAIL_DISCHARGE (20 MEGA) //20MW maximum discharge per rail base for now.
 #define RAIL_ZAP_COEFF 0.1 //Multiplier to how much of the actual applied power is in the zap. Should be small due to us throwing arounds metawatts of energy.
 #define RAIL_ZAP_RANGE 4 //Base range of zaps emitted by rails.
-#define HVRC_MIN_PEN_POWER 25000000 //25MW to penetrate
+#define HVRC_MIN_PEN_POWER (25 MEGA) //25MW to penetrate
 
 #define HVRC_MAX_PARTICLES_PER_TICK 10 //How many particles per tick does the HVRC generate at most when active?
 #define HVRC_PARTICLE_BUILDUP_SPEED 1 //How fast does particles per tick go up per cycle?
@@ -71,7 +71,7 @@ scream at code
 #define RAILSTATE_NOMINAL 1
 //Rail diverging slightly but can get one more shot off.
 #define RAILSTATE_DIVERGING 2
-//Uh oh!
+//Uh oh
 #define RAILSTATE_MISALIGNED 3
 
 /*
@@ -158,9 +158,9 @@ ALL HVRC-weapon-centric machinery only faces "nosewards" for a ship, aka RIGHT.
 
 ///If you do bad things, cannon go boom.
 /obj/machinery/hvrc/proc/detonate_hvrc(power)
-    var/light_radius = CEILING(power / 20000000, 1) + 2
-    var/heavy_radius = CEILING(power / 40000000, 1) + 1
-    var/devastation_radius = CEILING(power / 80000000, 1)
+    var/light_radius = CEILING(power / (20 MEGA), 1) + 2
+    var/heavy_radius = CEILING(power / (40 MEGA), 1) + 1
+    var/devastation_radius = CEILING(power / (80 MEGA), 1)
     explosion(src, devastation_radius, heavy_radius, light_radius, light_radius, ignorecap = TRUE)
 
 
@@ -262,8 +262,43 @@ Circuit board indestructible and cannot be printed without admin intervention or
  * * * power used, 0 if failed.
 **/
 /obj/machinery/hvrc/core/proc/use_capacitor_power(amount, soft_limit = FALSE)
-    return TRUE
-    //TODO actually use power from linked capacitors, return amount used if successful, 0 if not enough. Amount used can be smaller than amount if there was not enough, provided soft_limit is true.
+    var/total_capacitor_power = get_available_power()
+    if(!total_capacitor_power || (!soft_limit && total_capacitor_power < amount))
+        return FALSE
+    if(!amount) //huh??
+        return FALSE
+    var/list/capacitors = list()
+    for(var/obj/machinery/hvrc/hvrc_machine as anything in linked_components)
+        if(!istype(hvrc_machine, /obj/machinery/hvrc/capacitor))
+            continue
+        var/obj/machinery/hvrc/capacitor/hvrc_capacitor = hvrc_machine
+        if(hvrc_capacitor.current_state == HVRC_BROKEN)
+            continue
+        capacitors += hvrc_capacitor
+
+    var/total_use = min(amount, total_capacitor_power)
+    var/remaining_use = total_use
+    var/leftover_use = 0
+    //try to use power equally spread over capacitors first.
+    for(var/i = 1; i <= length(capacitors); i++)
+        var/drain = 0
+        if(i != length(capacitors))
+            drain = FLOOR(total_use / length(capacitors), 1)
+            remaining_use -= drain
+        else
+            drain = remaining_use
+        var/obj/machinery/hvrc/capacitor/hvrc_capacitor = capacitors[i]
+        leftover_use += max(0, (drain - hvrc_capacitor.use_stored_power(drain)))
+    
+    //Just go in line for any leftover needed use.
+    if(leftover_use)
+        for(var/obj/machinery/hvrc/capacitor/hvrc_capacitor as anything in capacitors)
+            leftover_use -= hvrc_capacitor.use_stored_power(leftover_use)
+            if(leftover_use <= 0)
+                break
+
+            
+    return min(total_capacitor_power, amount)
 
 /obj/machinery/hvrc/core/Initialize(mapload)
     . = ..()
@@ -670,6 +705,8 @@ Once the slug successfully reaches the z level boarder, it turns into an actual 
     armor = list("melee" = 100, "bullet" = 95, "laser" = 75, "energy" = 50, "bomb" = 100, "bio" = 100, "rad" = 100, "fire" = 100, "acid" = 100, "stamina" = 100, "overmap_light" = 100, "overmap_medium" = 90, "overmap_heavy" = 75)
     icon_state = "temp_muzzle"
     broken_state = "temp_muzzle_broken"
+    CanAtmosPass = ATMOS_PASS_PROC
+    CanAtmosPassVertical = ATMOS_PASS_PROC
 
 /obj/machinery/hvrc/muzzle/hvrc_slug_action(obj/item/projectile/bullet/proto_hvrc/passing_slug)
     . = ..()
@@ -680,6 +717,9 @@ Once the slug successfully reaches the z level boarder, it turns into an actual 
     passing_slug.finished = TRUE
     linked_core.firing_cycle_slug_launch(passing_slug)
 
+//Muzzle is atmos-proof and meant to connect cannon room with space.
+/obj/machinery/hvrc/muzzle/CanAtmosPass(turf/T)
+    return (current_state == HVRC_BROKEN)    
 /*
 Capacitor of an HVRC.
 These things take power from the power grid (directly via wire) and store it, which is then expended when energizing rails (over time) and in a big burst when firing (which the rails transfer into energy for the slug)
@@ -700,6 +740,11 @@ TODO:Should probably NOT be a hvrc machinery type?
     ///Current defined charge rate in power units / machinery tick
     var/current_charge_rate = 0
 
+/obj/machinery/hvrc/capacitor/proc/use_stored_power(amount)
+    var/used_power = min(stored_charge, amount)
+    stored_charge -= used_power
+    return used_power
+
 /obj/machinery/hvrc/capacitor/multitool_act(mob/living/user, obj/item/I)
     if(!multitool_check_buffer(user, I))
         return FALSE
@@ -710,8 +755,30 @@ TODO:Should probably NOT be a hvrc machinery type?
     var/obj/item/multitool/tool = I
     to_chat(user, "<span class='notice'>Capacitor ID saved to buffer.</span>")
     tool.buffer = src
-    return TRUE
 
+/obj/machinery/hvrc/capacitor/process(delta_time)
+    . = ..()
+    if(current_state == HVRC_BROKEN)
+        return
+    var/turf/T = get_turf(src)
+    var/obj/structure/cable/cable = T.get_cable_node()
+    if(!cable?.powernet)
+        return
+    var/datum/powernet/powernet = cable.powernet
+    var/actual_use = min(CLAMP(powernet.avail-powernet.load, 0, powernet.avail), current_charge_rate, maximum_charge - stored_charge)
+    if(actual_use)
+        powernet.load += actual_use
+        stored_charge += actual_use
+
+/obj/machinery/hvrc/capacitor/examine(mob/user)
+    . = ..()
+    var/turf/T = get_turf(src)
+    var/obj/structure/cable/cable = T.get_cable_node()
+    if(!cable?.powernet)
+        . += "[src] is currently not connected to a powernet!"
+    if(!linked_core)
+        . += "[src] is currently not connected to a weapon core!"
+    . += "Local charge: [stored_charge MEGAWATTS] megawatts."
 
 /*
 HVRC Control Computer.

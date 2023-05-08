@@ -80,9 +80,9 @@
 
 /obj/item/projectile/bullet/proto_hvrc/proc/detonate_proto_hvrc(power)
     stored_power *= 0.5
-    var/light_radius = CEILING(power / 20000000, 1) + 2
-    var/heavy_radius = CEILING(power / 40000000, 1) + 1
-    var/devastation_radius = CEILING(power / 80000000, 1)
+    var/light_radius = CEILING(power / (20 MEGA), 1) + 2
+    var/heavy_radius = CEILING(power / (40 MEGA), 1) + 1
+    var/devastation_radius = CEILING(power / (80 MEGA), 1)
     explosion(src, devastation_radius, heavy_radius, light_radius, light_radius, ignorecap = TRUE)    
 
 /obj/item/projectile/bullet/hvrc
