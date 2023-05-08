@@ -11,7 +11,8 @@ Add tool sounds to multitool realign / repair interactions.
 Actually make the capacitors use power when energized and especially when charging a slug
 Look at the whole energy -> speed thing since speed seems to be kinda weird.
 Revisit zap multiplier -> might be still very big
-Transfer of values between proto projectile and real one, ship weapon code integration
+Transfer of values between proto projectile and real one, ship weapon code integration - DONE
+Custom relaying interaction for throwing danger bullet at a hit ship's z level.
 Revisit Capacitor code and maybe change it to KW/tick or a different power unit.
 Make ONLY the core circuit nonprintable / indestructible.
 UI
@@ -21,7 +22,7 @@ scream at code
 
 //Turn back all ye who enter here.
 
-//Hmm lets assume something like 100MW charged as base damage for now.. Rails 5, capacitors 1. Base parts, up to x4 from adv parts.
+//Hmm lets assume something like 100MW charged as base damage for now.. Rails 5, capacitors 1. Base parts, up to x4 from adv parts. Maybe 2 caps for ship designs?
 //Delta from the future here, oh lord yeah this will require more number crunching than I like.
 #define HVRC_POWER_UNITS_PER_DAMAGE 200000 //0.2 MW / point of damage, for now
 #define HVRC_SPEED_EQUATION(x) (round(CLAMP(12 - (0.837537 * log((0.375504 * x) + 174.207) - 4.32207), 0.1, 12), 0.1)) //Starts at 12 ticks / tile, converges towards 0.1 at ~1GW Aka, this is substracted from the base value. Thank you function equation finder tool.
@@ -30,7 +31,7 @@ scream at code
 #define HVRC_MIN_POWER_MEDIUM_DAMAGE 10000000 //10MW min charged to be a medium damtype projectile
 #define HVRC_MIN_POWER_HEAVY_DAMAGE 80000000 //80MW min charged to be a heavy projectile
 
-//x = (root(2) * root(y) / root(z)) - x = wanted existance in ticks, y = pixel distance to pass, z = gravity speed. Thank you integrals.
+//x = (root(2) * root(y) / root(z)) -- x = wanted existance in ticks, y = pixel distance to pass, z = gravity acceleration. Thank you integrals.
 #define HVRC_PARTICLE_TIME_FUNCTION(y, z) (CEILING(((ROOT(1, 2) * ROOT(1, y)) / ROOT(1, z)),1)) //Ratvar ward me from this evil.
 
 #define HVRC_BASE_MAX_CAPACITOR_CHARGERATE 1000000 //1MW / second max chargerate
@@ -743,7 +744,7 @@ Contains various readouts.
     while(handling_turf)
         handling_turf = get_step(handling_turf, EAST)
         var/obj/machinery/hvrc/link_to = locate() in handling_turf
-        //Maybe change this to be a proc onm the different hvrc devices instead of an elif chain?
+        //Maybe change this to be a proc on the different hvrc devices instead of an elif chain?
         if(!link_to)
             say("Error: Incomplete linkage chain.")
             return FALSE
@@ -810,7 +811,7 @@ Snowflake weapon datum because this isn't a machinery/ship_weapon subtype due to
 
 /*
 This shouldn't exist but alas it does because single inheritance. Basically, normally these datums link to ship weapon machines but the HVRC is its own type.
-AI currently canno use this weapon on their ships. So, don't hand it to them.
+AI currently cannot use this weapon on their ships. So, don't hand it to them.
 */
 /datum/ship_weapon/hvrc_snowflake_weapon
     name = "Railcannons"
@@ -822,7 +823,7 @@ AI currently canno use this weapon on their ships. So, don't hand it to them.
 
 ///Always fires forwards on any click. Overrides parent proc. Also fires as fast as you can load and charge the thing.
 /datum/ship_weapon/hvrc_snowflake_weapon/special_fire(atom/target, ai_aim)
-    . = 2 //Do not let the normal fire proc do anything with this gun. Magicnumbered because FIRE_INTERCETED gets undef'd.
+    . = 2 //Do not let the normal fire proc do anything with this gun. Magicnumbered because FIRE_INTERCEPTED gets undef'd.
     ///TODO: Do the fancy stuff here.
     for(var/obj/machinery/hvrc/core/linked_core as anything in linked_hvrc_cores)
         if(!linked_core.loaded_slug || linked_core.current_state != HVRC_CHANNELLING)
