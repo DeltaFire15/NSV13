@@ -105,6 +105,10 @@ Returns a faction datum by its name (case insensitive!)
 	message_admins("Loading starsystem from [_source_path]...")
 	var/list/_systems = list()
 	//Read the file in...
+	//If we can't find starmap.json, load in the default instead. This should usually be for local servers
+	if(!fexists(_source_path))
+		log_game("Unable to find [_source_path]. Loading default instead. This is normal for local servers")
+		_source_path = "config/starmap/starmap_default.json"
 	try
 		_systems += json_decode(rustg_file_read(file(_source_path)))
 	catch(var/exception/ex)
@@ -165,9 +169,9 @@ Returns a faction datum by its name (case insensitive!)
 <param></param>
 */
 
-/datum/controller/subsystem/star_system/proc/save(_destination_path = CONFIG_DIRECTORY + "/" + STARMAP_FILE)
+/datum/controller/subsystem/star_system/proc/save(_destination_path = SSmapping.config.starmap_path)
 	// No :)
-	_destination_path = SANITIZE_FILENAME(_destination_path)
+	_destination_path = sanitize_filepath(_destination_path)
 	var/list/directory = splittext(_destination_path, "/")
 	if((directory[1] != "config") || (directory[2] != "starmap"))
 		CRASH("ERR: Starmaps can only be saved to the config directory!")
@@ -186,17 +190,18 @@ Returns a faction datum by its name (case insensitive!)
 	for(var/datum/star_system/S in systems)
 		if(S == null || istype(S, /datum/star_system/random))
 			continue
-		var/list/adjusted_adjacency_list = S.adjacency_list.Copy()
+		var/list/initial_adjacency_list = initial(S.adjacency_list) //Don't copy adjacency changes from wormholes or badmins (this is just a lazy fix right now)
+		var/list/adjusted_adjacency_list = initial_adjacency_list.Copy()
 		//Don't cache randomized systems in adjacency matrices.
 		for(var/system_name in adjusted_adjacency_list)
 			var/datum/star_system/SS = system_by_id(system_name)
 			if(istype(SS, /datum/star_system/random))
 				adjusted_adjacency_list.Remove(system_name)
-		var/list/adjusted_wormhole_connections = S.wormhole_connections.Copy()
+		/*var/list/adjusted_wormhole_connections = S.wormhole_connections.Copy() Not saving this right now, since wormholes spawn randomly
 		for(var/system_name in adjusted_wormhole_connections)
 			var/datum/star_system/SS = system_by_id(system_name)
 			if(istype(SS, /datum/star_system/random))
-				adjusted_wormhole_connections.Remove(system_name)
+				adjusted_wormhole_connections.Remove(system_name) */
 		var/list/entry = list(
 			//Fluff.
 			"name"=S.name,
@@ -205,12 +210,12 @@ Returns a faction datum by its name (case insensitive!)
 			//General system props
 			"alignment" = S.alignment,
 			"owner" = S.owner,
-			"hidden"=S.hidden,
+			"hidden"=initial(S.hidden),
 			"system_type" = json_encode(S.system_type),
 			"system_traits"=isnum(S.system_traits) ? S.system_traits : NONE,
 			"is_capital"=S.is_capital,
 			"adjacency_list"=json_encode(adjusted_adjacency_list),
-			"wormhole_connections"=json_encode(adjusted_wormhole_connections),
+			"wormhole_connections"=S.wormhole_connections,
 			"fleet_type" = S.fleet_type,
 			//Coords, props.
 			"x" = S.x,
@@ -264,7 +269,10 @@ Returns a faction datum by its name (case insensitive!)
 	if(!ships[OM])
 		return
 	var/datum/star_system/system = system_by_id(OM.starting_system)
-	ships[OM]["current_system"] = system
+	if(!ships[OM]["current_system"])
+		ships[OM]["current_system"] = system
+	else
+		system = ships[OM]["current_system"]
 	return system
 
 /datum/controller/subsystem/star_system/proc/spawn_ship(obj/structure/overmap/OM, datum/star_system/target_sys, center=FALSE)//Select Ship to Spawn and Location via Z-Trait
@@ -432,10 +440,11 @@ Returns a faction datum by its name (case insensitive!)
 /datum/star_system/proc/parse_startup_proc()
 	switch(startup_proc)
 		if("STARTUP_PROC_TYPE_BRASIL")
-			addtimer(CALLBACK(src, .proc/generate_badlands), 5 SECONDS)
+			addtimer(CALLBACK(src, PROC_REF(generate_badlands)), 5 SECONDS)
 			return
 		if("STARTUP_PROC_TYPE_BRASIL_LITE")
-			addtimer(CALLBACK(src, .proc/generate_litelands), 5 SECONDS)
+			addtimer(CALLBACK(src, PROC_REF(generate_litelands)), 5 SECONDS)
+			return
 	message_admins("WARNING: Invalid startup_proc declared for [name]! Review your defines (~L438, starsystem.dm), please.")
 	return 1
 
@@ -500,11 +509,12 @@ Returns a faction datum by its name (case insensitive!)
 		station13.starting_system = src.name
 		station13.current_system = src
 		station13.set_trader(src.trader)
+		src.trader.system = src
 		// trader.generate_missions()
 	if(!CHECK_BITFIELD(src.system_traits, STARSYSTEM_NO_ANOMALIES))
-		addtimer(CALLBACK(src, .proc/generate_anomaly), 15 SECONDS)
+		addtimer(CALLBACK(src, PROC_REF(generate_anomaly)), 15 SECONDS)
 	if(!CHECK_BITFIELD(src.system_traits, STARSYSTEM_NO_ASTEROIDS))
-		addtimer(CALLBACK(src, .proc/spawn_asteroids), 15 SECONDS)
+		addtimer(CALLBACK(src, PROC_REF(spawn_asteroids)), 15 SECONDS)
 
 /datum/star_system/proc/create_wormhole()
 	var/list/potential_systems = list()
@@ -554,7 +564,7 @@ Returns a faction datum by its name (case insensitive!)
 /obj/effect/overmap_anomaly/Initialize(mapload)
 	. = ..()
 	var/static/list/loc_connections = list(
-		COMSIG_ATOM_ENTERED = .proc/on_entered,
+		COMSIG_ATOM_ENTERED = PROC_REF(on_entered),
 	)
 	AddElement(/datum/element/connect_loc, loc_connections)
 
