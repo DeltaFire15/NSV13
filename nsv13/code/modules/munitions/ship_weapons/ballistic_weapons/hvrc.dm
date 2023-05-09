@@ -554,6 +554,7 @@ Manually cancelling energizing process or running out of power causes discharges
         return FALSE
     if(current_state == HVRC_CHANNELLING)
         return FALSE
+    visible_message("<span class='notice'>[src] beeps strangly.</span>")
     ENABLE_BITFIELD(obj_flags, EMAGGED)
     update_icon()
     return TRUE
@@ -757,7 +758,6 @@ TODO:Should probably NOT be a hvrc machinery type?
     tool.buffer = src
 
 /obj/machinery/hvrc/capacitor/process(delta_time)
-    . = ..()
     if(current_state == HVRC_BROKEN)
         return
     var/turf/T = get_turf(src)

@@ -55,6 +55,9 @@
 
 /obj/item/projectile/bullet/proto_hvrc/on_hit(atom/target, blocked, pierce_hit)
     . = ..()
+    if(iswallturf(target))
+        var/turf/closed/wall/demolish = target
+        demolish.dismantle_wall(TRUE)
     if(!isliving(target) || !. || . == BULLET_ACT_BLOCK)
         return
     if(damage < 80)
