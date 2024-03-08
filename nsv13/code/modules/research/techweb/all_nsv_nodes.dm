@@ -60,7 +60,7 @@
 	display_name = "Advanced Ballistics"
 	description = "More guns means better guns... Right?"
 	prereq_ids = list("ballistic_weapons")
-	design_ids = list("naval_shell", "powder_bag", "gauss_rack_upgrade", "broadside_casing", "broadside_load", "broadside_packer")
+	design_ids = list("naval_shell", "powder_bag", "gauss_rack_upgrade", "broadside_casing", "broadside_load", "broadside_packer", "plasma_core")
 	research_costs = list(TECHWEB_POINT_TYPE_GENERIC = 5000)
 	export_price = 5000
 
@@ -155,6 +155,33 @@
 	research_costs = list(TECHWEB_POINT_TYPE_GENERIC = 5000)
 	export_price = 5000
 
+/datum/techweb_node/fighter_mining
+	id = "fightermining"
+	display_name = "Aircraft Mining Equipment"
+	description = "Reasearch into mounting exosuit-grade mining equipment to utility vessels."
+	design_ids = list("r_cutter")
+	prereq_ids = list("fighter_tier1", "adv_mining", "adv_plasma")
+	research_costs = list(TECHWEB_POINT_TYPE_GENERIC = 1500)
+	export_price = 1000
+
+/datum/techweb_node/autoinjector
+	id = "autoinjector"
+	display_name = "Autoinjector Medipens"
+	description = "Research of instant reagent delivery into patient bloodstreams"
+	design_ids = list("autoinjector")
+	prereq_ids = list("adv_biotech","adv_surgery")
+	research_costs = list(TECHWEB_POINT_TYPE_GENERIC = 1500)
+	export_price = 1500
+
+/datum/techweb_node/xenoorgan_biotech
+    id = "xenoorgan_bio"
+    display_name = "Xeno-organ Biology"
+    description = "Plasmaman, Ethereals, Lizardpeople... What makes our non-human crewmembers tick?"
+    prereq_ids = list("adv_biotech")
+    design_ids = list("limbdesign_felinid", "limbdesign_lizard", "limbdesign_plasmaman", "limbdesign_ethereal", "limbdesign_moth", "limbdesign_apid")
+    research_costs = list(TECHWEB_POINT_TYPE_GENERIC = 6500)
+    export_price = 9000
+
 //Vehicle Hardpoint tech
 /datum/techweb_node/vehicle_start
 	id = "vehicle_start"
@@ -198,5 +225,16 @@
 	description = "DA RED WUNS GO FASTA!!!"
 	design_ids = list("vehicle_engine_maxupgrade", "vehicle_tyres_maxupgrade")
 	prereq_ids = list("vehicle_tier2")
+	research_costs = list(TECHWEB_POINT_TYPE_GENERIC = 5000)
+	export_price = 5000
+
+/// Munitions Upgrade for Engineering Borg
+/datum/techweb_node/cyborg_upg_muni
+	id = "cyborg_upg_muni"
+	tech_tier = 4
+	display_name = "Cyborg Upgrades: Munitions"
+	description = "Munition related upgrades for cyborgs."
+	prereq_ids = list("adv_robotics", "adv_engi" , "adv_ballistics")
+	design_ids = list("borg_upgrade_muniapp")
 	research_costs = list(TECHWEB_POINT_TYPE_GENERIC = 5000)
 	export_price = 5000

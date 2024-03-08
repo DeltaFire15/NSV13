@@ -7,7 +7,9 @@ GLOBAL_LIST_EMPTY(knpcs)
 	var/ai_trait = AI_AGGRESSIVE
 	var/static/list/ai_goals = null
 	var/datum/ai_goal/human/current_goal = null
-	var/view_range = 12 //How good is this mob's "eyes"?
+	var/view_range = 8 //How good is this mob's "eyes"?
+	var/guess_range = 12 //How far away will we assume they're still there after seeing them?
+	var/list/last_aggressors = list()
 	var/next_backup_call = 0 //Delay for calling for backup to avoid spam.
 	var/list/path = list()
 	var/turf/dest = null
@@ -37,6 +39,7 @@ GLOBAL_LIST_EMPTY(knpcs)
 
 /mob/living/carbon/human/ai_boarder/Initialize(mapload)
 	. = ..()
+	randomize_human(src)
 	var/outfit_path = pick(outfit)
 	var/datum/outfit/O = new outfit_path
 	O.equip(src)
@@ -59,7 +62,8 @@ GLOBAL_LIST_EMPTY(knpcs)
 	START_PROCESSING(SSfastprocess, src)
 	//They're alive!
 	GLOB.knpcs.Add(src)
-	RegisterSignal(parent, COMSIG_LIVING_REVIVE, .proc/restart)
+	RegisterSignal(parent, COMSIG_LIVING_REVIVE, PROC_REF(restart))
+	RegisterSignal(parent, COMSIG_ATOM_BULLET_ACT, PROC_REF(register_bullet))
 
 //Swiper! no swiping
 /datum/component/knpc/proc/steal_id(obj/item/card/id/their_id)
@@ -213,6 +217,7 @@ GLOBAL_LIST_EMPTY(knpcs)
 
 ///Allows the AI actor to be revived by a medic, and get straight back into the fight!
 /datum/component/knpc/proc/restart()
+	SIGNAL_HANDLER
 	START_PROCESSING(SSfastprocess, src)
 
 ///Pick a goal from the available goals!
@@ -226,6 +231,14 @@ GLOBAL_LIST_EMPTY(knpcs)
 			best_score = this_score
 	if(chosen)
 		chosen.assume(src)
+
+///Add someone to our threat list when they shoot us. Shamelessly lifted from monkey AI code.
+/datum/component/knpc/proc/register_bullet(datum/source, obj/item/projectile/Proj)
+	SIGNAL_HANDLER
+	if(istype(Proj , /obj/item/projectile/beam)||istype(Proj, /obj/item/projectile/bullet))
+		if((Proj.damage_type == BURN) || (Proj.damage_type == BRUTE))
+			if(!Proj.nodamage && isliving(Proj.firer))
+				last_aggressors += Proj.firer
 
 ///Handles actioning on the goal every tick.
 /datum/component/knpc/process()
@@ -281,7 +294,9 @@ of a specific action goes up, to encourage skynet to go for that one instead.
 /datum/ai_goal/proc/get_aggressors(datum/component/knpc/HA)
 	. = list()
 	var/mob/living/carbon/human/ai_boarder/H = HA.parent
-	for(var/mob/living/M in oview(HA.view_range, HA.parent))
+	var/list/detected_objects = view(HA.view_range, HA.parent)
+	var/list/guessed_objects = view(HA.guess_range, HA.parent)
+	for(var/mob/living/M in guessed_objects)
 		//Invis is a no go. Non-human, -cyborg or -hostile mobs are ignored.
 		if(M.invisibility >= INVISIBILITY_ABSTRACT || M.alpha <= 0 || (!ishuman(M) && !iscyborg(M) && !ishostile(M)))
 			continue
@@ -291,6 +306,8 @@ of a specific action goes up, to encourage skynet to go for that one instead.
 		else if(M.stat == DEAD)
 			continue
 		if(H.faction_check_mob(M))
+			continue
+		if(!(M in detected_objects) && !(M in HA.last_aggressors))
 			continue
 		. += M
 	//Check for nearby mechas....
@@ -417,6 +434,7 @@ This is to account for sec Ju-Jitsuing boarding commandos.
 	if(!..())
 		return 0
 	var/list/enemies = get_aggressors(HA)
+	HA.last_aggressors = enemies
 	//We have people to fight
 	if(length(enemies) >= 1)
 		return score
@@ -522,7 +540,7 @@ This is to account for sec Ju-Jitsuing boarding commandos.
 				if(their_id && !HA.stealing_id)
 					H.visible_message("<span class='warning'>[H] starts to take [their_id] from [target]!</span>")
 					HA.stealing_id = TRUE
-					addtimer(CALLBACK(HA, /datum/component/knpc/proc/steal_id, their_id), 5 SECONDS)
+					addtimer(CALLBACK(HA, TYPE_PROC_REF(/datum/component/knpc, steal_id), their_id), 5 SECONDS)
 
 				if(istype(H) && CHECK_BITFIELD(H.knpc_traits, KNPC_IS_MARTIAL_ARTIST))
 					switch(rand(0, 2))
