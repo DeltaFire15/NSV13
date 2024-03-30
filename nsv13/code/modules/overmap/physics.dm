@@ -624,6 +624,8 @@ This proc is to be used when someone gets stuck in an overmap ship, gauss, WHATE
 		if(isovermap(proj.homing_target))
 			var/obj/structure/overmap/overmap_target = proj.homing_target
 			overmap_target.on_missile_lock(src, proj)
+
+	//It has been a year since I looked at this branch and I do not remember WHAT this actually fixes, but I'll trust old me here :) ~Delta
 	LAZYINITLIST(proj.impacted) //The spawn call after this might be causing some issues so the list should exist before async actions.
 
 	spawn()

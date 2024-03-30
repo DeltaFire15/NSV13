@@ -72,8 +72,9 @@ Probably a bad idea to touch, ingest, or worse.
 /datum/goop_controller/proc/self_terminate(obj/structure/nano_goop/source)
     dying = TRUE
     for(var/obj/structure/nano_goop/goop as anything in (goop_structures - source))
-        animate(goop, alpha = 0, time = 2 SECONDS, flags = ANIMATION_END_NOW)
-        QDEL_IN(goop, 2 SECONDS)
+        var/deltime = rand(20, 50) //2 - 5 seconds until del
+        animate(goop, alpha = 0, time = deltime, flags = ANIMATION_END_NOW)
+        QDEL_IN(goop, deltime)
 
 //The actual goop ///OBSOL-WIP - Maybe give them an alpha mask that blocks out part of the legs of mobs? That'd be pretty cool.
 /obj/structure/nano_goop
@@ -96,6 +97,8 @@ Probably a bad idea to touch, ingest, or worse.
     var/welder_weakness = 250
     ///weak to fire - decent bonus damage multiplier from lasers and energy weapons
     var/laser_weakness = 4
+    ///target mobs on the tile currently being affected. Used to moving out and back in doesn't dupe callbacks
+    var/list/affecting_mobs = list()
 
 
 /obj/structure/nano_goop/Destroy()
@@ -171,11 +174,14 @@ Probably a bad idea to touch, ingest, or worse.
                 L.adjustFireLoss(1, TRUE, TRUE)
         else
             L.adjustFireLoss(1, TRUE, TRUE)
+        if(L in affecting_mobs)
+            return //Don't dupe timers.
         var/critorworse = (L.stat >= UNCONSCIOUS || L.IsSleeping() || L.IsUnconscious())
         if(critorworse)
             L.visible_message("<span class='warning'>[L] starts to sink into [src].</span>", "<span class='warning'>You start to sink into [src]!</span>")
             playsound(src, 'sound/effects/blobattack.ogg', 5, TRUE, -14, ignore_walls = FALSE, falloff_distance = 2)
             animate(L, alpha = 0, time = 2 SECONDS)
+        affecting_mobs += L
         addtimer(CALLBACK(src, .proc/recheck_mob, L, critorworse), 2 SECONDS)
 
 ///Rechecks mobs still on a turf after the timer runs out, effectively creating a loop of sorts, ending when either moving off the turf, or when gooped.
@@ -183,8 +189,10 @@ Probably a bad idea to touch, ingest, or worse.
     if(mob_target.loc != get_turf(src))
         if(was_sinking)
             mob_target.alpha = 255
+        affecting_mobs -= mob_target
         return
     if(HAS_TRAIT(mob_target, TRAIT_OBSOLESCENT) || ("obsolescent" in mob_target.faction))
+        affecting_mobs -= mob_target
         return //You may pass.
     if(was_sinking)
         mob_target.visible_message("<span class='warning'>[mob_target] submerges in [src].</span>", "<span class='warning'>You completely submerge in [src]!</span>", "<span class='warning'>You hear weird goopy noises.</span>")
