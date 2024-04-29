@@ -257,7 +257,7 @@
 
 			playsound(src, 'sound/machines/terminal_prompt_confirm.ogg', 50, FALSE)
 
-			SStopic.crosscomms_send("comms_console", message, station_name())
+			SStopic.crosscomms_send_async("comms_console", message, station_name())
 			minor_announce(message, title = "Outgoing message to allied station", html_encode = FALSE)
 			usr.log_talk(message, LOG_SAY, tag="message to the other server")
 			message_admins("[ADMIN_LOOKUPFLW(usr)] has sent a message to the other server.")
@@ -338,14 +338,16 @@
 				log_game("[key_name(usr)] enabled emergency maintenance access.")
 				message_admins("[ADMIN_LOOKUPFLW(usr)] enabled emergency maintenance access.")
 				deadchat_broadcast("<span class='deadsay'><span class='name'>[usr.real_name]</span> enabled emergency maintenance access at <span class='name'>[get_area_name(usr, TRUE)]</span>.</span>", usr)
-		if("checkObjectives")
+		if("checkObjectives") //NSV13 overmap objectives
 			if (!authenticated(usr))
 				return
 			. = TRUE
+			state = STATE_OBJECTIVES
+			if(SSovermap_mode.already_ended)
+				return
 			SSovermap_mode.mode.check_completion()
 			if(SSovermap_mode.objectives_completed && SSovermap_mode.round_extended)
 				priority_announce("Auto-recall to Outpost 45 will occur once you are out of combat.", "[SSovermap_mode.mode.reminder_origin]")
-			state = STATE_OBJECTIVES
 
 /obj/machinery/computer/communications/ui_data(mob/user)
 	var/list/data = list(

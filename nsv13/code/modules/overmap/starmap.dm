@@ -16,7 +16,7 @@
 	var/datum/star_system/selected_system = null
 	var/screen = STARMAP
 	var/can_control_ship = TRUE
-	var/current_sector = 2
+	var/current_sector = SECTOR_NEUTRAL
 	circuit = /obj/item/circuitboard/computer/ship/navigation
 
 /obj/machinery/computer/ship/navigation/LateInitialize()
@@ -75,13 +75,13 @@
 			. = TRUE
 		if("jump")
 			if(linked.ftl_drive.lockout)
-				visible_message("<span class='warning'>[icon2html(src, viewers(src))] Unable to comply. Invalid authkey to unlock remove override code.</span>")
+				to_chat(usr, "<span class='warning'>[icon2html(src, viewers(src))] Unable to comply. Invalid authkey to unlock remove override code.</span>")
 				return
 			linked.ftl_drive.jump(selected_system)
 			. = TRUE
 		if("cancel_jump")
 			if(linked.ftl_drive.lockout)
-				visible_message("<span class='warning'>[icon2html(src, viewers(src))] Unable to comply. Invalid authkey to unlock remove override code.</span>")
+				to_chat(usr, "<span class='warning'>[icon2html(src, viewers(src))] Unable to comply. Invalid authkey to unlock remove override code.</span>")
 				return
 			if(linked.ftl_drive.cancel_ftl())
 				linked.stop_relay(CHANNEL_IMPORTANT_SHIP_ALERT)
@@ -154,11 +154,11 @@
 				if(system.is_hypergate)
 					label += " HYPERGATE"
 				if(system.is_capital && !label)
-					label = "CAPITAL"
-				if(system.trader && system.sector != 3) //Use shortnames in brazil for readability
-					label = " [system.trader.name]"
-				if(system.trader && system.sector == 3) //Use shortnames in brazil for readability
-					label = " [system.trader.shortname]"
+					label += "CAPITAL"
+				if(system.trader && system.sector != SECTOR_NEUTRAL) //Use shortnames in brazil for readability
+					label += " [system.trader.name]"
+				if(system.trader && system.sector == SECTOR_NEUTRAL) //Use shortnames in brazil for readability
+					label += " [system.trader.shortname]"
 				if(system.mission_sector)
 					label += " OCCUPIED"
 				if(system.objective_sector)

@@ -56,477 +56,62 @@
 		-->
 		<div class="commit sansserif">
 
-			<h2 class="date">05 May 2023</h2>
-			<h3 class="author">tralezab, Tastyfish, nickup9, SyncIt21 updated:</h3>
-			<ul class="changes bgimages16">
-				<li class="rscadd">UI for ordering bulk amount of stuff from cargo</li>
-				<li class="bugfix">clear cart button which now properly clears cart</li>
-			</ul>
-
-			<h2 class="date">01 May 2023</h2>
-			<h3 class="author">covertcorvid updated:</h3>
-			<ul class="changes bgimages16">
-				<li class="server">Updates TGS DMAPI version to 6.4.2</li>
-			</ul>
-
-			<h2 class="date">30 April 2023</h2>
-			<h3 class="author">Karmic-Skink updated:</h3>
-			<ul class="changes bgimages16">
-				<li class="tweak">Shuffled Shrike Cargo Crates</li>
-				<li class="rscadd">Added Processor Board to Shrike Tech Storage</li>
-				<li class="rscadd">Added Generic Vendor Board to Shrike Tech Storage</li>
-				<li class="bugfix">Fixed damaged sections of Shrike maint having incorrect turfs</li>
-				<li class="bugfix">Moved errant light in Shrike mining maint</li>
-				<li class="tweak">Silenced the Shrike cargo lift</li>
-				<li class="rscadd">Added Cargo Shuttle Timer to Shrike cargo lift</li>
-				<li class="tweak">Lazylift Blast Doors will now automatically open when the lift arrives, and stay open</li>
-				<li class="rscadd">Added block out in space to catch the ejected SM on Shrike</li>
-			</ul>
-
-			<h2 class="date">28 April 2023</h2>
-			<h3 class="author">Bobbanz1, silicons updated:</h3>
-			<ul class="changes bgimages16">
-				<li class="rscadd">Custom holoforms have been added for AIs.</li>
-			</ul>
-
-			<h2 class="date">26 April 2023</h2>
-			<h3 class="author">covertcorvid updated:</h3>
-			<ul class="changes bgimages16">
-				<li class="bugfix">Made the "catastrophic casualties" check actually call the emergency shuttle</li>
-			</ul>
-
-			<h2 class="date">22 April 2023</h2>
-			<h3 class="author">itsmeow, Piril, PestoVerde322, RubberEyes, EvilDragonfiend, Bobbanz1 updated:</h3>
-			<ul class="changes bgimages16">
-				<li class="rscdel">Removed PDAs.</li>
-				<li class="rscdel">Removed round-start backpack tablets.</li>
-				<li class="refactor">Due to a buyout and massive restructuring of Thinktronic Systems, all crew now start with tablets containing pre-installed programs for messaging, and programs for tasks previously done by PDAs.</li>
-				<li class="tweak">PDA sprites have been slightly changed to account for the new program overlays. Wide PDAs have normal sized screens, and PDAs start off with a black screen.</li>
-				<li class="rscadd">Added themes to tablets in the Settings app.</li>
-				<li class="tweak">Renamed Hardware Configuration to Settings.</li>
-				<li class="code_imp">Improved tablet flashlight UI interaction with cyborg code.</li>
-				<li class="admin">Added logging to PDA bombs.</li>
-				<li class="tweak">Brig physician now starts with a cartridge.</li>
-				<li class="rscadd">Added a locator app for janitors to find mops, cleanbots, and janicarts with.</li>
-				<li class="bugfix">Improved ModPC behavior with sechuds showing the wrong HUD.</li>
-				<li class="tweak">You can now use holochips directly on a PDA/tablet to insert credits to the ID inside.</li>
-				<li class="tweak">Tablet flashlight now uses movable lighting instead of jumping around</li>
-				<li class="tweak">Tablets can be used while inside lockers.</li>
-				<li class="code_imp">Changed tablet program access requirements to support lists.</li>
-				<li class="code_imp">Added an emoji entry TGUI interface. For use with the mime PDA.</li>
-				<li class="rscadd">Emagging a modPC now opens a console window with flavor text and sets the theme to syndicate.</li>
-				<li class="bugfix">Fixes PDA sent photos opening an undersized window.</li>
-				<li class="tweak">Cyborg integrated tablet now has a button background.</li>
-				<li class="tweak">AI now has a small integrated tablet only for sending messages.</li>
-				<li class="tweak">Added an improved photo selection TGUI menu, mainly for use by silicons.</li>
-				<li class="bugfix">Photos now describe their dimensions properly.</li>
-				<li class="bugfix">Photo descriptions no longer randomly place periods around.</li>
-				<li class="bugfix">Photos can no longer describe invisible things.</li>
-				<li class="rscadd">Nukie tablets now start with the Remote Airlock Control program, for remotely interfacing with the infiltrator's blast door.</li>
-				<li class="tweak">Regular cargo techs no longer have the Ore Silo logs in their PDA Cartridge. It's now locked to the QM.</li>
-				<li class="rscadd">Added a new Cargo Technician cartridge with its own icon.</li>
-				<li class="rscadd">Added a Log Viewer program for viewing ore silo and NTChat logs on the filesystem.</li>
-				<li class="bugfix">Modular computers now correctly show visible_messages to the user if they are holding it.</li>
-				<li class="rscdel">Removed the messaging console's system message capability.</li>
-				<li class="rscadd">The Status Display modPC app can now update status alert images.</li>
-				<li class="bugfix">Fixed some runtimes in Cyborg Self Monitoring and Robot Control.</li>
-				<li class="bugfix">D.E.T.O.M.A.T.I.X. charges are no longer infinite.</li>
-				<li class="bugfix">D.E.T.O.M.A.T.I.X. explosions now do the same damage as before tablet-PDAs.</li>
-				<li class="bugfix">Power-ON disks are now improper nouns.</li>
-				<li class="tweak">changed the fingerprint to DNA in the medical records app in PDAs</li>
-				<li class="tweak">added scrollbars to the direct messenger PDA app</li>
-				<li class="rscadd">Converted the message monitor to TGUI</li>
-				<li class="rscadd">The Message Monitor can now send admin messages with emojis and images.</li>
-				<li class="tweak">Changed the flavor text for the monitor decryption key paper.</li>
-				<li class="tweak">Emagging the message monitor no longer immediately prints the key, but instead prints the key when the message monitor is usable again (after 10 * keylength seconds). The key couldn't be used prior to this previously, so it just makes it more consistent.</li>
-				<li class="bugfix">Fixed PDA messages with images not always properly line breaking inside "View Messages" on the Messenger app.</li>
-				<li class="bugfix">Fixed a possible hard-del when the message monitor's linked server was deleted.</li>
-				<li class="admin">Added logging and admin messages for deletion of PDA/request logs.</li>
-				<li class="tweak">Improved the Message Monitor's server linking behavior to support multiple servers of the same network and name.</li>
-				<li class="bugfix">Fixed an exploit where you could unlink the active message monitor server, link to another with a different decryption key, and still be authenticated.</li>
-				<li class="admin">Added an admin verb, "Send PDA Message"</li>
-				<li class="code_imp">relocated cartridge.dm to job_disk.dm. repathed cartridge vendor to /job_disk</li>
-				<li class="tweak">HoP disk vendor sells various job disks now. there're contraband inside.</li>
-				<li class="tweak">HoP disk vendor no longer sells PDAs that have weirdly-pre-inserted-head-only-job-disks. It sells normal PDAs now.</li>
-				<li class="code_imp">Changed the default installed PDA programs to only being installed on the PDA subtype instead of the default Tablet SSD.</li>
-				<li class="code_imp">Changes the size of the Notepad to 0 and makes it undeletable and unavailable on NTNet.</li>
-				<li class="code_imp">Moves the Wiki Uplink Program to only being installed by default on the PDAs</li>
-				<li class="rscadd">Added name and job searching to the PDA Messenger contacts panel.</li>
-				<li class="tweak">PDA message inputs are now TGUI-based.</li>
-				<li class="tweak">When inputting a new PDA ringtone, the old one will be in the input text box already.</li>
-				<li class="code_imp">Improved some PDA messenger code.</li>
-				<li class="code_imp">TGUI text inputs now properly autofocus text.</li>
-			</ul>
-
-			<h2 class="date">19 April 2023</h2>
-			<h3 class="author">Shaps/Ryll, Wesoda25, Y0SH1M4S73R, Mothblocks, Ghommie updated:</h3>
-			<ul class="changes bgimages16">
-				<li class="tweak">NT has updated its personnel policies and allowed for employees to register as gender neutral, with standard support for they/them pronouns.</li>
-				<li class="tweak">changed text on gender options to make them grammatically correct and visually pleasing</li>
-				<li class="spellcheck">Wound tending and people holding items in photographs have had their pronoun usage fixed.</li>
-				<li class="rscadd">Added M/F body preferences.</li>
-			</ul>
-			<h3 class="author">Wisemonster updated:</h3>
-			<ul class="changes bgimages16">
-				<li class="bugfix">Fixed medibots ignoring patients that stepped away from them.</li>
-			</ul>
-			<h3 class="author">[itsmeow](https://github.com/itsmeow), [AnturK](https://github.com/AnturK), [RimiNosha](https://github.com/RimiNosha), [dwasint](https://github.com/dwasint) updated:</h3>
-			<ul class="changes bgimages16">
-				<li class="code_imp">Code should now compile on 515</li>
-			</ul>
-			<h3 class="author">covertcorvid updated:</h3>
-			<ul class="changes bgimages16">
-				<li class="tweak">Mice will no longer spawn or eat on catwalk wires</li>
-			</ul>
-
-			<h2 class="date">18 April 2023</h2>
-			<h3 class="author">SerynEngi updated:</h3>
-			<ul class="changes bgimages16">
-				<li class="tweak">Changed the gondola asteroid to not spawn sabres within rock.</li>
-				<li class="tweak">Fixed a couple minor mapping errors in Tycoon engineering.</li>
-			</ul>
-			<h3 class="author">someone543 updated:</h3>
-			<ul class="changes bgimages16">
-				<li class="spellcheck">Fixed a typo in the Crewsimov Core module</li>
-			</ul>
-
-			<h2 class="date">09 April 2023</h2>
-			<h3 class="author">BetaCentari updated:</h3>
-			<ul class="changes bgimages16">
-				<li class="bugfix">Fixed the proper position of the plasma canister in the cargo list</li>
-			</ul>
-			<h3 class="author">Bobbanz1 updated:</h3>
-			<ul class="changes bgimages16">
-				<li class="rscadd">Added Coffee related things from the ported PRs</li>
-				<li class="rscadd">Adds a Coffeemaker to every map in rotation</li>
-				<li class="rscadd">Adds Naval Coffee, don't drink too much now!</li>
-				<li class="bugfix">The Shrike now again has Glock Ammo in its armory!</li>
-				<li class="bugfix">The Snake now no longer has a double pipe in maintenance!</li>
-			</ul>
-			<h3 class="author">Bobbanz1, Kmc2000, AbsurdlyLudicrous, cdey, flaksim updated:</h3>
-			<ul class="changes bgimages16">
-				<li class="rscadd">Added new Replicator Recipes.</li>
-				<li class="rscadd">You can now manually link the Replicator to different Biogenerators using a multitool!</li>
-				<li class="code_imp">changed how the replicator produces items, easier methods of giving it new recipes are now available for coding.</li>
-				<li class="refactor">refactored the horrible looking TGUI interface into something more sensible.</li>
-				<li class="imageadd">ported and modified a few icons from Deep-Space-13.</li>
-			</ul>
-			<h3 class="author">Bobbanz1, dragomagol, Kubisopplay, ShizCalev, NamelessFairy updated:</h3>
-			<ul class="changes bgimages16">
-				<li class="bugfix">advanced cyborg hypospray once again refills its chems</li>
-				<li class="bugfix">Borg hypospray will correctly tell you the name of the limb that is blocked when trying to inject into a blocked limb.</li>
-			</ul>
-			<h3 class="author">covertcorvid updated:</h3>
-			<ul class="changes bgimages16">
-				<li class="balance">Increased Shrike base protolathe/techfab storage capacity</li>
-				<li class="rscadd">Added circuitboards for the furnace and furnace control console to mining tech research</li>
-				<li class="rscadd">Added construction, deconstruction, and multitool linking of furnace and furnace console</li>
-				<li class="rscadd">Added stock parts upgrades for the furnace</li>
-				<li class="bugfix">Fixed mining points not appearing on the smelter console after the TGUI upgrade</li>
-				<li class="rscadd">Adds the space yellow pages. It is a book you can buy from space stations that show listings of supplies at nearby space stations.</li>
-				<li class="imageadd">Added classic yellow pages icon.</li>
-				<li class="code_imp">Starsystem Manager is in its own file now</li>
-				<li class="admin">Starsystem Manager search tool can now be used to find fleets and objects</li>
-				<li class="admin">Starsystem Manager now has options for viewing variables</li>
-				<li class="bugfix">Fixed sabre FTL missing a variable</li>
-				<li class="bugfix">FTL pylons will now add load to the power grid</li>
-				<li class="balance">FTL machines can no longer be eaten by swarmers</li>
-			</ul>
-			<h3 class="author">red031000 updated:</h3>
-			<ul class="changes bgimages16">
-				<li class="server">Bumps auxmos to 2.2.2</li>
-				<li class="server">Bumps the maximum BYOND version to 514.1589</li>
-			</ul>
-			<h3 class="author">someone543 updated:</h3>
-			<ul class="changes bgimages16">
-				<li class="rscadd">Gunpowder can now be loaded to trolleys by hand</li>
-			</ul>
-
-			<h2 class="date">05 April 2023</h2>
-			<h3 class="author">SerynEngi updated:</h3>
-			<ul class="changes bgimages16">
-				<li class="rscdel">Removed Boxstation, Corgstation, Flandstation, Deltastation, Kilostation, Metastation and Pubbystation</li>
-			</ul>
-
-			<h2 class="date">03 April 2023</h2>
-			<h3 class="author">PowerfulBacon updated:</h3>
-			<ul class="changes bgimages16">
-				<li class="code_imp">Adds current map to metric tracking</li>
-			</ul>
-			<h3 class="author">covertcorvid updated:</h3>
-			<ul class="changes bgimages16">
-				<li class="bugfix">fixed the events subsystem, which sometimes relies on the jobs subsystem, initializing before the jobs subsystem</li>
-			</ul>
-			<h3 class="author">jbox144, Bobbanz1 updated:</h3>
-			<ul class="changes bgimages16">
-				<li class="rscadd">Adds the hugbot</li>
-				<li class="imageadd">Adds icons for the hugbot</li>
-				<li class="imageadd">Adds the NSV13 file aibots.dmi</li>
-				<li class="imagedel">Deleted the catmedbot.dmi file</li>
-				<li class="code_imp">Changed the icon path on the MediKitty to the newly created dmi file</li>
-			</ul>
-
-			<h2 class="date">01 April 2023</h2>
-			<h3 class="author">EvilDragonfiend, Ivniinvi, Zytolg, RKz, CydiaLamiales, Shiraizawa, itsmeow updated:</h3>
-			<ul class="changes bgimages16">
-				<li class="admin">welding/unwelding an airlock will be logged</li>
-				<li class="code_imp">changed a long var declaration from a single line into multiple lines for better readability</li>
-				<li class="code_imp">timers are put in the closest future bucket, as a precaution</li>
-				<li class="tweak">medibots have more skins based on which first aid kit was used when it's made. These currently have no speicla ability by its shape which means these are just skins.</li>
-				<li class="imageadd">more medibot skins (advanced, rad, syndi, doctors roundstart kit)</li>
-				<li class="tweak">Phobias can now be weighted</li>
-				<li class="tweak">The phobias of Robots and Doctors are slightly less likely to occur</li>
-				<li class="tweak">The phobia of Space is significantly less likely to occur</li>
-				<li class="rscadd">Lizard speech now has a variation on the use of X in normal conversation. Things like "Xenomorph" will sound the same as before as it is phonetically similiar, however uses of "x-ray" will become "ecks-ray".</li>
-				<li class="rscadd">Added a line of text showing the Security Level in the current round</li>
-				<li class="bugfix">fixed anomalies spawning inside walls</li>
-				<li class="tweak">Instead of being dusted, plasmaman helmets now have their lamps broken when hit with the Light Eater</li>
-				<li class="rscadd">Added the ability to repair broken plasmaman helmet lamps with light bulbs</li>
-				<li class="bugfix">Tying and untying bandanas will give the proper notice to people seeing it</li>
-				<li class="balance">Decreased the snowball effect of fear build-up from (stress x10)% to (stress x5)%. Your stress levels build up faster with each fainting now, which leads to a higher chance of a heartattack</li>
-				<li class="bugfix">You wont faint immediately after waking up from a faint caused by a phobia</li>
-				<li class="bugfix">The message for fainting from a phobia will actually be visible for the one fainting now</li>
-				<li class="rscadd">Added a small bit of text indicating AIs should Ahelp before using the "Wipe-Core" verb</li>
-				<li class="bugfix">Engineer goggles wont give meson lighting effects in their off state anymore.</li>
-				<li class="tweak">Prevented multiple Space Pirates spawning in a round.</li>
-			</ul>
-			<h3 class="author">covertcorvid updated:</h3>
-			<ul class="changes bgimages16">
-				<li class="rscadd">Added jetpack and cryogenic fuel tank to the mining vendor.</li>
-				<li class="rscdel">Removed regen core stabilizer, skeleton key, minebot weatherproofing, most survival capsules, jump boots, minebot armor, and PKA damage and AOE upgrades from mining vendor.</li>
-			</ul>
-
-			<h2 class="date">31 March 2023</h2>
-			<h3 class="author">covertcorvid updated:</h3>
-			<ul class="changes bgimages16">
-				<li class="bugfix">Fixes an exploit with the byond debugger leaking information</li>
-			</ul>
-
-			<h2 class="date">30 March 2023</h2>
-			<h3 class="author">BetaCentari updated:</h3>
-			<ul class="changes bgimages16">
-				<li class="bugfix">Fixed and touched up the Gladius</li>
-			</ul>
-			<h3 class="author">Bobbanz1 updated:</h3>
-			<ul class="changes bgimages16">
-				<li class="code_imp">Altered some of the code structure in the broadside packer bench.</li>
-				<li class="rscadd">Added an icon to let the holomap show you where you can find an elevator button to press!</li>
-				<li class="code_imp">changed some of the area colors, munitions is now orange, cargo is now brown.</li>
-			</ul>
-			<h3 class="author">HowToLoLu updated:</h3>
-			<ul class="changes bgimages16">
-				<li class="bugfix">Lizard tails no longer ignore dna when regenerating organs.</li>
-			</ul>
-			<h3 class="author">WhereAmO updated:</h3>
-			<ul class="changes bgimages16">
-				<li class="tweak">Ecto Sniffer now sends a message over Science Comms when a Ghost uses it.</li>
-			</ul>
-			<h3 class="author">benbot16 updated:</h3>
-			<ul class="changes bgimages16">
-				<li class="rscadd">Adds a sabre-mounted plasma cutter. This can be printed at cargo protolathes and uses ship power to fire.</li>
-				<li class="rscadd">Adds point defense lasers to the Aetherwhisp, located in the starboard weapons bay.</li>
-				<li class="code_imp">Ship weapons with burst fire can now have variable delays between shots.</li>
-			</ul>
-
-			<h2 class="date">27 March 2023</h2>
-			<h3 class="author">Bobbanz1, ghost, Qustinnus, Kryson, uglykoala, KittyNoodle, itseasytosee, FlamingLily, SmArtKar, Fikou, ShizCalev, wesoda25 updated:</h3>
-			<ul class="changes bgimages16">
-				<li class="rscadd">Ethereals now crystalize on death, allowing them to heal themselves unless the crystal is destroyed, but giving them a brain trauma when its succesful.</li>
-				<li class="bugfix">ethereal hair will now change with ethereal color without an external update</li>
-				<li class="bugfix">If you get qdeleted while crystalizing as ethereal, you no longer get super-owned</li>
-				<li class="bugfix">Ethereals will no longer crystallize after being eaten. (His grace, etc, etc)</li>
-				<li class="bugfix">Fixed ethereal revive crystal bugging out when buckled</li>
-				<li class="bugfix">ethereals no longer revive after being changeling drained</li>
-			</ul>
-			<h3 class="author">benbot16 updated:</h3>
-			<ul class="changes bgimages16">
-				<li class="balance">TX-101 shell damage & penetration ability now scales with powder load</li>
-			</ul>
-
-			<h2 class="date">26 March 2023</h2>
-			<h3 class="author">covertcorvid, Karmic-Skink updated:</h3>
-			<ul class="changes bgimages16">
-				<li class="rscadd">Added a non-power-based variant of the chem dispenser and out it on the Shrike</li>
-			</ul>
-
-			<h2 class="date">24 March 2023</h2>
-			<h3 class="author">RimiNosha (Skyrat-TG), Woodratt (Polaris), DietyLink (Original Holomap Creator) (/vg/station)  updated:</h3>
-			<ul class="changes bgimages16">
-				<li class="rscadd">Added Holomaps! Check them out!</li>
-			</ul>
-
-			<h2 class="date">21 March 2023</h2>
-			<h3 class="author">Bobbanz1 updated:</h3>
-			<ul class="changes bgimages16">
-				<li class="code_imp">Added two else statements, not really worth nothing beyond it annihilating two newly created warnings in VSC</li>
-			</ul>
-			<h3 class="author">benbot16 updated:</h3>
-			<ul class="changes bgimages16">
-				<li class="bugfix">Fixes VLS tube autoloading.</li>
-			</ul>
-			<h3 class="author">itsmeow updated:</h3>
-			<ul class="changes bgimages16">
-				<li class="rscadd">Added TGUI inputs and alerts internally, however they are not enabled.</li>
-				<li class="bugfix">Improved the response of most alert menus when you X them out rather than hitting No/Cancel.</li>
-				<li class="tweak">Increased the contrast of selected/hovered TGUI buttons to 30% (from 15%)</li>
-			</ul>
-
-			<h2 class="date">19 March 2023</h2>
+			<h2 class="date">21 April 2024</h2>
 			<h3 class="author">Bokkiewokkie updated:</h3>
 			<ul class="changes bgimages16">
-				<li class="bugfix">Fixed some variables that caused the Serendipity webmap to fail</li>
+				<li class="bugfix">Updated the webmap link</li>
 			</ul>
 
-			<h2 class="date">17 March 2023</h2>
-			<h3 class="author">Bobbanz1 updated:</h3>
+			<h2 class="date">19 April 2024</h2>
+			<h3 class="author">KasparoVy updated:</h3>
 			<ul class="changes bgimages16">
-				<li class="tweak">Increases the TGUI Window Limit to 20.</li>
-			</ul>
-			<h3 class="author">TheFakeElon, IndusRobot, Absolutely-Steph updated:</h3>
-			<ul class="changes bgimages16">
-				<li class="rscadd">Adds a new FTL drive and it's respective components</li>
-				<li class="code_imp">cleans up legacy FTL drive file</li>
-				<li class="code_imp">Adds a new advanced looping sound handler</li>
-				<li class="code_imp">Adds an index2phonetic/greek proc</li>
-			</ul>
-			<h3 class="author">covertcorvid updated:</h3>
-			<ul class="changes bgimages16">
-				<li class="rscadd">Added new mapvote UI that displays detailed information about ships</li>
-				<li class="rscadd">Added additional ship data to all the map JSONs</li>
-				<li class="rscadd">Added statistics for round results and engine meltdowns</li>
-				<li class="admin">New ban type "Mapvote" prevents people from voting in map votes</li>
-				<li class="server">Logged who voted for what map and whether voters were present next round during the roundstart logout report in the Vote log</li>
-			</ul>
-			<h3 class="author">linnpap, Seris02, Useroth updated:</h3>
-			<ul class="changes bgimages16">
-				<li class="bugfix">AIs will no longer hear all emotes from all ai_eye cameras</li>
-				<li class="rscadd">AI eye can now see emotes (or to be specific, non-spoken messages emitted from things)</li>
-				<li class="rscadd">It's now possible to examine holopad holograms during the call to actually examine the character represented by the holo</li>
-				<li class="rscadd">It's now possible to properly send emotes through holopad holograms</li>
-				<li class="rscadd">It's now possible to properly see emotes through holopad holograms</li>
-				<li class="rscadd">BONUS because I hate snowflake code: the above should work with regular character-made holocalls too</li>
+				<li class="rscadd">added more custom prosthetic sprites</li>
 			</ul>
 
-			<h2 class="date">14 March 2023</h2>
-			<h3 class="author">Bobbanz1 updated:</h3>
+			<h2 class="date">01 April 2024</h2>
+			<h3 class="author">Bokkiewokkie updated:</h3>
 			<ul class="changes bgimages16">
-				<li class="bugfix">Engine room areas are now protected against power grid checks, don't know about atmos though! :)</li>
-			</ul>
-			<h3 class="author">Kit_Katz, RKz updated:</h3>
-			<ul class="changes bgimages16">
-				<li class="rscadd">Added new customization options for apids. Color is now selectable from a pallette, and three customization options have been added for stripes, antenna, and bodymarkings</li>
-				<li class="imageadd">entirely new APID sprites for sprite_accessories, including stripes, antenna, and bodymarkings</li>
-			</ul>
-			<h3 class="author">someone543 updated:</h3>
-			<ul class="changes bgimages16">
-				<li class="balance">Tier 2 missile racks can now hold 10 (from 5) missiles</li>
+				<li class="bugfix">Fixed auto-spooling not working for the Thirring FTL drive.</li>
+				<li class="balance">Enabled auto-spooling as an option for the Thirring FTL drive by default.</li>
 			</ul>
 
-			<h2 class="date">13 March 2023</h2>
+			<h2 class="date">29 March 2024</h2>
 			<h3 class="author">Bobbanz1 updated:</h3>
 			<ul class="changes bgimages16">
-				<li class="bugfix">KNPCs have now taken a class in navigating old spaceships and can now patrol the Hammerhead</li>
-				<li class="bugfix">KNPCs have overcome their fear of tight spaces, so now they can navigate the Snake</li>
-				<li class="bugfix">The Syndicate Daredevil Lone Troopers have overcome their fear regarding the possibility that the Snake contains a bunch of snakes, and now they can come along to have some fun as well~</li>
+				<li class="bugfix">The destruction of a gauss turret now leaves behind the machine frame that had been used to construct it.</li>
+				<li class="code_imp">Gave the machine board of the gauss turret a req_components list with nothing inside it to prevent a runtime error from occurring.</li>
+				<li class="tweak">Rerouted the piping network in the assault course a bit so it resolves the issue raised about them missing when they were actually going through the window instead.</li>
+				<li class="rscdel">Removed some wiring that didn't do anything.</li>
+				<li class="bugfix">Engineering Lobby now has the wiring coming from maintenance actually hooked up to the grid rather than ending a tile early.</li>
+				<li class="rscadd">Gave the Aetherwhisp laser weaponry circuit boards so they don't get completely round removed when destroyed,</li>
 			</ul>
-			<h3 class="author">cacogen, ShizCalev, Hatterhat updated:</h3>
+			<h3 class="author">Bokkiewokkie updated:</h3>
 			<ul class="changes bgimages16">
-				<li class="tweak">Can use BSRPED to add components to machine frames at a distance</li>
-				<li class="tweak">RPEDs now drop their lowest part tier first when quick-emptied (used inhand).</li>
+				<li class="bugfix">Fixed some bad initializations</li>
+				<li class="rscadd">Added the ability to research and print naval gun parts</li>
+				<li class="balance">Moved the gauss gun upgrade board to level 2 munitions research "Macro Ballistics"</li>
+				<li class="balance">Added science tiers to NSV researches</li>
+				<li class="balance">Made it so printable naval gun part circuits can be destroyed</li>
 			</ul>
-			<h3 class="author">zxaber updated:</h3>
+			<h3 class="author">DeltaFire15 updated:</h3>
 			<ul class="changes bgimages16">
-				<li class="rscadd">Ported the Ratvar Hologram</li>
-				<li class="imageadd">Ported the Ratvar Hologram icon</li>
+				<li class="bugfix">Being recalled with an inactive thirring drive should no longer trap the ship in the darkness between stars.</li>
+				<li class="bugfix">Nucleium engine turfs now work. As may some other map cases of "nucleum" being used as incorrect term.</li>
 			</ul>
 
-			<h2 class="date">10 March 2023</h2>
-			<h3 class="author">BetaCentari updated:</h3>
+			<h2 class="date">01 March 2024</h2>
+			<h3 class="author">Bokkiewokkie updated:</h3>
 			<ul class="changes bgimages16">
-				<li class="rscadd">Added the DLV Serendipity Ship</li>
-				<li class="rscadd">Added the Food Replicator</li>
-				<li class="rscadd">Added the Organ Grower</li>
-				<li class="rscadd">Added the autodoc as a map-only machine</li>
-				<li class="rscadd">Added Autoinjector printers</li>
-				<li class="rscadd">Added autoinjectors</li>
-				<li class="rscadd">Added special incense candles for chaplain drobe</li>
-				<li class="rscadd">Added a new weapon for munitions: The MPAC</li>
-				<li class="rscadd">Added supporting ammo/machines/manual for the MPAC</li>
-				<li class="soundadd">added Food replicator sound effects</li>
-				<li class="soundadd">added sounds for the MPAC</li>
-				<li class="imageadd">added Sprites for MPAC and supporting machines/items</li>
-				<li class="imageadd">added Sprite for the Serendipity</li>
-				<li class="imageadd">added sprite for autoinjectors and printer</li>
-				<li class="imageadd">added Sprites for the Food Replicator</li>
-				<li class="imageadd">added New sprites for the organ grower</li>
-				<li class="imageadd">Sprites for incense (candle sprites from Skyrat)</li>
-			</ul>
-			<h3 class="author">Bobbanz1 updated:</h3>
-			<ul class="changes bgimages16">
-				<li class="refactor">Refactors the Smelter User Interface into a TGUI Version</li>
-			</ul>
-			<h3 class="author">DrDuckedGoose updated:</h3>
-			<ul class="changes bgimages16">
-				<li class="tweak">Tweaks Hypodermic injections rates from 5, 10, 15 > (7, 14 , 21 * metabolization_rate).</li>
-				<li class="tweak">Changes C.D.E knockout from 5 Seconds > 2 Seconds</li>
-				<li class="tweak">Barreled will no longer always target east when not given a specific direction, instead it will pick a random direction.</li>
-				<li class="tweak">Lamp now has a visible message which aids in identifying it in well-lit rooms</li>
-				<li class="tweak">Changes logging xyz > area</li>
-				<li class="tweak">Change research point reward from 2.3 * final price > 2.5 * final price</li>
-				<li class="tweak">Change discovery point reward from 350*final_price/initial_price > 350*(final price/initial price)) * max(1, final price/1000)</li>
-				<li class="tweak">Aggressively lowers stun times on all related traits</li>
-				<li class="tweak">Artifacts will now target the user too. The only way to avoid this is to be inside science & wearing safety-pinchers.</li>
-				<li class="tweak">Slightly lower sentient buffs to arfiacts</li>
-				<li class="tweak">Blacklist aura from destabilizing.</li>
-				<li class="tweak">Artifacts malfunction more often.</li>
-				<li class="tweak">All artifacts get an extra slot for malfunctions, 1 > 2</li>
-				<li class="tweak">Extend sentient play offer</li>
-				<li class="tweak">Wall trait now points randomly east or north if it is 3x1</li>
-				<li class="tweak">Increase bananium malfunction chance</li>
-				<li class="tweak">Ghosts can take control of player-less artifacts</li>
-				<li class="tweak">Artifact consoles now have a stability meter that stops spam-buying.</li>
-				<li class="tweak">Sentient artifacts are more common, slightly,</li>
-				<li class="tweak">Ghosts can activate haunted artifacts.</li>
-				<li class="tweak">Tweaks labeler UI to show elements in alphabetical order.</li>
-				<li class="tweak">Tweak console UI to have less clutter.</li>
-				<li class="bugfix">Swaps over to AREACOORD for logging.</li>
-				<li class="bugfix">Fix cheeky runtime on Weighted. No longer checks all gloves for safety variable.</li>
-				<li class="bugfix">Fix issue with weighted signal order preventing activation.</li>
-				<li class="bugfix">Fix lamp trait runtiming</li>
-				<li class="bugfix">Fix anti_artifact runtiming</li>
-				<li class="bugfix">Fix fragile artifacts not breaking due to byond being beyond illogical.</li>
-				<li class="bugfix">Fix strip malfunction from stripping non-removable clothing..</li>
-				<li class="rscadd">Adds anti-clone malfunction. Creates an evil twin of the target.</li>
-				<li class="rscadd">Add better functions for adding malfunctions that support typing</li>
-				<li class="rscadd">Add exploding malfunction delaminating, unique to bananium.</li>
-				<li class="rscadd">Add all artifact smoke screen trait.</li>
-				<li class="rscadd">Add Plasma & Bluespace trait, Marker trait, colors the target</li>
-				<li class="rscadd">Add all artifact malfunction absorbing. Absorbs nearby gasses, suffocating small rooms. Will spit gasses back out when destroyed.</li>
-				<li class="rscadd">Add Honked activator. Only clowns, and clown related items, can activate this artifact.</li>
-				<li class="rscadd">Add Emotional major. Makes target perform a random emote, from a curated list.</li>
-				<li class="rscadd">Add Desynced minor. Makes the artifact disappear for a short period after activating.</li>
-				<li class="rscadd">Add Hallucinogenic malfunction. Makes the target experience a random hallucination.</li>
-				<li class="rscadd">Add bar to UI that shows thread stability.</li>
-				<li class="bugfix">Fix flammable trait not activating</li>
-				<li class="bugfix">Fix haunted activation.</li>
-				<li class="bugfix">Fix blacklisting on explosive malfunction</li>
-				<li class="tweak">Add limit to clone & bear malfunction.</li>
-			</ul>
-			<h3 class="author">Ghommie, RKz updated:</h3>
-			<ul class="changes bgimages16">
-				<li class="bugfix">new advancements in Object Permanence Theory at NT Labs have been discovered! Lizard snoots will no longer disappear when wearing certain hoods or helmets.</li>
-			</ul>
-			<h3 class="author">SerynEngi updated:</h3>
-			<ul class="changes bgimages16">
-				<li class="tweak">Doubled Ethereal light radius.</li>
-			</ul>
-			<h3 class="author">benbot16 updated:</h3>
-			<ul class="changes bgimages16">
-				<li class="code_imp">Adds virtual Zs to dropships.</li>
-			</ul>
-			<h3 class="author">covertcorvid updated:</h3>
-			<ul class="changes bgimages16">
-				<li class="balance">Separated KNPC detection range from attack range. Set detection range equal to normal humans.</li>
+				<li class="rscadd">Added synthetic first-aid kit as a cargo purchase</li>
+				<li class="rscadd">Added synthetic first-aid kit as a traitor IPC item</li>
+				<li class="tweak">Made overdosing on highjack leak oil on the ground if your head is already gone</li>
+				<li class="imageadd">Added a medbot sprite for the synthetic first-aid kit</li>
+				<li class="imageadd">Added a lanyard illustration to the lanyard box</li>
+				<li class="spellcheck">Fixed a typo in the wavy stick name</li>
+				<li class="code_imp">Moved some code for storage items to the proper file</li>
+				<li class="rscdel">Removed the requirement for firing electronics from PDC</li>
+				<li class="rscdel">Removed the option to switch PDC to flak boards as they are not in use</li>
+				<li class="spellcheck">Fixed inconsistencies in NSV circuitboard names</li>
 			</ul>
 		</div>
 

@@ -71,12 +71,20 @@
 	var/list/equipped_gear = list()
 	var/joblessrole = BERANDOMJOB  //defaults to 1 for fewer assistants
 	var/uplink_spawn_loc = UPLINK_PDA
+	var/list/role_preferences_character = list()
 	//Nsv13 squads - we CM now
 	var/preferred_squad = "Able"
 	//NSV13 - Pilots
 	var/preferred_pilot_role = PILOT_COMBAT
-	//NSV13 - Added Flavor Text
+	//NSV13 - Roleplaying Stuff - Start
 	var/flavor_text = ""
+	//Nsv13 - lizard hiss style pref
+	var/lizard_hiss_style = LIZARD_HISS_EXPANDED
+	var/silicon_flavor_text = ""
+	var/general_record = ""
+	var/security_record = ""
+	var/medical_record = ""
+	//NSV13 - Roleplaying Stuff - End
 
 /datum/character_save/New()
 	real_name = get_default_name()
@@ -155,14 +163,30 @@
 	SAFE_READ_QUERY(31, loadout_tmp)
 	equipped_gear = json_decode(loadout_tmp)
 
-	//NSV13 squads
+	//NSV13 - Start
 	SAFE_READ_QUERY(32, preferred_squad)
 
-	//NSV13 pilot role
 	SAFE_READ_QUERY(33, preferred_pilot_role)
 
-	//NSV13 flavor text
 	SAFE_READ_QUERY(34, flavor_text)
+
+	//NSV13 lizard hiss style
+	SAFE_READ_QUERY(35, lizard_hiss_style)
+
+	SAFE_READ_QUERY(36, silicon_flavor_text)
+
+	SAFE_READ_QUERY(37, general_record)
+
+	SAFE_READ_QUERY(38, security_record)
+
+	SAFE_READ_QUERY(39, medical_record)
+	//NSV13 - Stop
+
+	// Role prefs
+	var/role_preferences_character_tmp
+	SAFE_READ_QUERY(40, role_preferences_character_tmp) //NSV13 - Moved from 32 to 40 due to Roleplaying stuff
+	role_preferences_character = json_decode(role_preferences_character_tmp)
+
 
 	//Sanitize. Please dont put query reads below this point. Please.
 
@@ -243,9 +267,22 @@
 			job_preferences -= j
 
 	all_quirks = SANITIZE_LIST(all_quirks)
+	role_preferences_character = SANITIZE_LIST(role_preferences_character)
+	// Remove any invalid entries
+	for(var/preference in role_preferences_character)
+		var/path = text2path(preference)
+		var/datum/role_preference/entry = GLOB.role_preference_entries[path]
+		if(istype(entry) && entry.per_character)
+			continue
+		role_preferences_character -= preference
 
-
-	flavor_text = html_decode(strip_html(flavor_text)) //NSV13 added flavor text
+	//NSV13 - Roleplay Stuff - Start
+	flavor_text = html_decode(strip_html(flavor_text))
+	silicon_flavor_text = html_decode(strip_html(silicon_flavor_text))
+	general_record = sanitize_text(general_record)
+	security_record = sanitize_text(security_record)
+	medical_record = sanitize_text(medical_record)
+	//NSV13 - Roleplay Stuff - Stop
 
 	return TRUE
 
@@ -308,7 +345,7 @@
 	if(IS_GUEST_KEY(C.ckey))
 		return
 
-	// Get ready for a disgusting query //NSV13 adds squads, pilot role and flavor text prefs
+	// Get ready for a disgusting query //NSV13 adds squads, pilot role and roleplaying prefs
 	var/datum/DBQuery/insert_query = SSdbcore.NewQuery({"
 		REPLACE INTO [format_table_name("characters")] (
 			slot,
@@ -345,7 +382,13 @@
 			equipped_gear,
 			preferred_squad,
 			preferred_pilot_role,
-			flavor_text
+			flavor_text,
+			lizard_hiss_style,
+			silicon_flavor_text,
+			general_record,
+			security_record,
+			medical_record,
+			role_preferences
 		) VALUES (
 			:slot,
 			:ckey,
@@ -381,7 +424,13 @@
 			:equipped_gear,
 			:preferred_squad,
 			:preferred_pilot_role,
-			:flavor_text
+			:flavor_text,
+			:lizard_hiss_style,
+			:silicon_flavor_text,
+			:general_record,
+			:security_record,
+			:medical_record,
+			:role_preferences
 		)
 	"}, list(
 		// Now for the above but in a fucking monsterous list
@@ -419,7 +468,13 @@
 		"equipped_gear" = json_encode(equipped_gear),
 		"preferred_squad" = preferred_squad,
 		"preferred_pilot_role" = preferred_pilot_role,
-		"flavor_text" = flavor_text
+		"flavor_text" = flavor_text,
+		"lizard_hiss_style" = lizard_hiss_style,
+		"silicon_flavor_text" = silicon_flavor_text,
+		"general_record" = general_record,
+		"security_record" = security_record,
+		"medical_record" = medical_record,
+		"role_preferences" = json_encode(role_preferences_character)
 	))
 
 	if(!insert_query.warn_execute())

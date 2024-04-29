@@ -56,6 +56,9 @@
 
 	mobchatspan = "centcom"
 
+	//NSV13 - Roleplay Stuff
+	var/datum/examine_panel/tgui = new() //create the datum
+
 /mob/living/silicon/Initialize(mapload)
 	. = ..()
 	GLOB.silicon_mobs += src
@@ -256,6 +259,11 @@
 	if (href_list["printlawtext"]) // this is kinda backwards
 		to_chat(usr, href_list["printlawtext"])
 
+	//NSV13 - Silicon Flavor Text - Start
+	if(href_list["lookup_info"])
+		tgui.holder = src
+		tgui.ui_interact(usr) //datum has a tgui component, here we open the window
+	//NSV13 - Silicon Flavor Text - End
 	return
 
 
@@ -463,6 +471,10 @@
 	add_sensors()
 	to_chat(src, "Sensor overlay activated.")
 
+/mob/living/silicon/proc/crew_manifest(mob/living/silicon) //nsv add manifest to borg computer
+	var/mob/living/silicon/borgo = usr
+	borgo.ai_roster()
+
 /mob/living/silicon/proc/GetPhoto(mob/user)
 	if (aicamera)
 		return aicamera.selectpicture(user)
@@ -486,7 +498,12 @@
 	return FALSE
 
 /mob/living/silicon/handle_high_gravity(gravity)
-	return
+	//NSV13 - silicons are not fully grav immune, only very resistant.
+	if(gravity <= GRAVITY_DAMAGE_TRESHOLD + 5) //5G additional tolerance. Magicnumber to avoid touching base defines.
+		return
+	gravity -= 5 //3 is base tolerance, this adds 5 onto it for the total of 8.
+	return ..()
+	//NSV13 end.
 
 /mob/living/silicon/rust_heretic_act()
 	adjustBruteLoss(500)

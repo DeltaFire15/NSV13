@@ -3700,6 +3700,10 @@
 	},
 /turf/open/floor/monotile/dark,
 /area/gateway)
+"bRw" = (
+/obj/machinery/lazylift_button,
+/turf/closed/wall/r_wall/ship,
+/area/shuttle/turbolift/tertiary)
 "bRS" = (
 /obj/effect/turf_decal/tile/ship/half/blue{
 	dir = 1
@@ -3943,7 +3947,7 @@
 /turf/open/floor/monotile/light,
 /area/science/mixing)
 "bXz" = (
-/obj/machinery/atmospherics/components/unary/portables_connector{
+/obj/machinery/atmospherics/pipe/multiz{
 	dir = 1
 	},
 /turf/open/floor/plating,
@@ -4068,6 +4072,12 @@
 /obj/machinery/newscaster/security_unit/north,
 /turf/open/floor/monotile/steel,
 /area/security/brig)
+"cai" = (
+/obj/machinery/atmospherics/components/unary/portables_connector{
+	dir = 8
+	},
+/turf/open/floor/plating,
+/area/maintenance/nsv/deck1/port/aft)
 "cal" = (
 /obj/structure/lattice/catwalk/over/ship/dark,
 /obj/effect/landmark/event_spawn,
@@ -4401,6 +4411,20 @@
 /obj/effect/spawner/lootdrop/maintenance,
 /turf/open/floor/plating,
 /area/maintenance/nsv/weapons)
+"cid" = (
+/obj/structure/cable{
+	icon_state = "1-2"
+	},
+/obj/machinery/atmospherics/pipe/simple/supply/hidden/layer2,
+/obj/machinery/atmospherics/pipe/simple/scrubbers/hidden/layer4,
+/obj/structure/disposalpipe/segment{
+	dir = 1
+	},
+/obj/structure/cable{
+	icon_state = "1-4"
+	},
+/turf/open/floor/plating,
+/area/maintenance/nsv/deck1/port/aft)
 "cih" = (
 /obj/structure/cable{
 	icon_state = "4-8"
@@ -32206,10 +32230,7 @@
 /obj/structure/cable{
 	icon_state = "4-8"
 	},
-/obj/structure/closet/secure_closet/brig{
-	id = "brig3";
-	name = "Cell 3 Locker"
-	},
+/obj/structure/closet/secure_closet/genpop,
 /turf/open/floor/monotile/steel,
 /area/security/brig)
 "oZR" = (
@@ -35526,6 +35547,10 @@
 	},
 /turf/open/floor/engine/vacuum,
 /area/maintenance/disposal/incinerator)
+"qCo" = (
+/obj/machinery/atmospherics/components/binary/valve/digital,
+/turf/open/floor/plating,
+/area/maintenance/nsv/deck1/port/aft)
 "qCC" = (
 /obj/effect/spawner/structure/window/reinforced,
 /obj/structure/cable,
@@ -44823,9 +44848,6 @@
 /obj/structure/disposalpipe/segment{
 	dir = 1
 	},
-/obj/structure/cable{
-	icon_state = "4-32"
-	},
 /turf/open/floor/plating,
 /area/maintenance/nsv/deck1/port/aft)
 "vcs" = (
@@ -48316,9 +48338,8 @@
 /turf/open/floor/carpet/blue,
 /area/bridge/meeting_room)
 "wKy" = (
-/obj/structure/grille/broken,
-/obj/machinery/atmospherics/pipe/simple/dark/visible{
-	dir = 10
+/obj/machinery/atmospherics/pipe/manifold/dark{
+	dir = 1
 	},
 /turf/open/floor/plating,
 /area/maintenance/nsv/deck1/port/aft)
@@ -50470,6 +50491,11 @@
 /area/science/research)
 "xLA" = (
 /obj/machinery/atmospherics/pipe/simple/dark/visible,
+/obj/effect/turf_decal/box,
+/obj/effect/turf_decal/ship/shutoff,
+/obj/structure/cable{
+	icon_state = "8-32"
+	},
 /turf/open/floor/plating,
 /area/maintenance/nsv/deck1/port/aft)
 "xLQ" = (
@@ -72838,7 +72864,7 @@ wsg
 eqI
 gVj
 gVj
-eqI
+bRw
 eqI
 pJj
 pJj
@@ -74334,7 +74360,7 @@ cDJ
 mgX
 cuq
 vck
-cuq
+cid
 tCd
 acZ
 mNq
@@ -74589,7 +74615,7 @@ csK
 pdN
 lNe
 wKy
-xLA
+qCo
 qai
 xLA
 bXz
@@ -74845,7 +74871,7 @@ pdN
 pdN
 pdN
 qCG
-qCG
+cai
 vCb
 emS
 meS

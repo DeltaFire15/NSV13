@@ -1,6 +1,6 @@
 {
     "map_name": "NSV Atlas",
-    "map_link": "Atlas",
+    "map_link": "atlas",
     "map_path": "map_files/Atlas",
     "map_file": [
         "atlas.dmm",
@@ -21,7 +21,6 @@
     "shuttles": {
         "cargo": "cargo_atlas",
         "ferry": "ferry_fancy",
-        "arrival": "arrival_atlas",
         "emergency": "emergency_atlas"
     },
     "mine_disable": 1,

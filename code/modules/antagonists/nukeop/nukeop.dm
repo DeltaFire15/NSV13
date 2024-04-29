@@ -2,7 +2,8 @@
 	name = "Nuclear Operative"
 	roundend_category = "syndicate operatives" //just in case
 	antagpanel_category = "NukeOp"
-	job_rank = ROLE_OPERATIVE
+	banning_key = ROLE_OPERATIVE
+	required_living_playtime = 8
 	antag_moodlet = /datum/mood_event/focused
 	show_to_ghosts = TRUE
 	hijack_speed = 2 //If you can't take out the station, take the shuttle instead.
@@ -144,7 +145,7 @@
 	nuke_team = new_team
 
 /datum/antagonist/nukeop/admin_add(datum/mind/new_owner,mob/admin)
-	new_owner.assigned_role = ROLE_SYNDICATE
+	new_owner.assigned_role = ROLE_OPERATIVE
 	new_owner.add_antag_datum(src)
 	message_admins("[key_name_admin(admin)] has nuke op'ed [key_name_admin(new_owner)].")
 	log_admin("[key_name(admin)] has nuke op'ed [key_name(new_owner)].")
@@ -178,14 +179,14 @@
 /datum/antagonist/nukeop/leader/memorize_code()
 	..()
 	if(nuke_team?.memorized_code)
-		var/obj/item/paper/P = new
-		P.info = "The nuclear authorization code is: <b>[nuke_team.memorized_code]</b>"
-		P.name = "nuclear bomb code"
+		var/obj/item/paper/nuke_code_paper = new
+		nuke_code_paper.add_raw_text("The nuclear authorization code is: <b>[nuke_team.memorized_code]</b>")
+		nuke_code_paper.name = "nuclear bomb code"
 		var/mob/living/carbon/human/H = owner.current
 		if(!istype(H))
-			P.forceMove(get_turf(H))
+			nuke_code_paper.forceMove(get_turf(H))
 		else
-			H.put_in_hands(P, TRUE)
+			H.put_in_hands(nuke_code_paper, TRUE)
 			H.update_icons()
 
 /datum/antagonist/nukeop/leader/give_alias()
