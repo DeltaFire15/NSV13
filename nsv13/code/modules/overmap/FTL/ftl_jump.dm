@@ -311,11 +311,11 @@
 			continue
 		if(SOM == src)
 			continue
-		if(!SOM.z)
-			continue
 		LAZYADD(pulled, SOM)
 	target_system.add_ship(src) //Get the system to transfer us to its location.
 	for(var/obj/structure/overmap/SOM in pulled)
+		if(SOM.current_system && SOM.current_system.system_contents.Find(SOM))
+			SOM.current_system.system_contents -= SOM //Pain.
 		target_system.add_ship(SOM)
 
 	SEND_SIGNAL(src, COMSIG_SHIP_ARRIVED) // Let missions know we have arrived in the system
