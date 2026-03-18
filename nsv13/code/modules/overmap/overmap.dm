@@ -62,8 +62,6 @@
 	var/disruption = 0	//Causes bad effects proportional to how significant. Most significant for AI ships (or fighters) hit by disruption weapons.
 
 	var/use_armour_quadrants = FALSE //Does the object use the armour quadrant system?
-	var/max_armour = 0 //Max armour amount per quad
-	var/current_armour = 0 //Per quad
 	var/list/armour_quadrants = list("forward_port" = list(), "forward_starboard" = list(), "aft_port" = list(), "aft_starboard" = list()) //Our four quadrants
 	var/linked_apnw = null //Our linked APNW
 
