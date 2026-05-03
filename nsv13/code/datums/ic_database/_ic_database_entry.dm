@@ -9,3 +9,5 @@
 	var/entry_faction = null
 	///This does not show up in the database unless you have found it, even if you are an enemy faction ship.
 	var/secret_entry = FALSE
+	///Whether you have (permanenetly) unlocked this entry. This should be saved via persistence. Only main faction ships should be able to do this.
+	var/unlocked = FALSE

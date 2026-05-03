@@ -62,6 +62,8 @@
 	var/disruption = 0	//Causes bad effects proportional to how significant. Most significant for AI ships (or fighters) hit by disruption weapons.
 
 	var/use_armour_quadrants = FALSE //Does the object use the armour quadrant system?
+	///The base armor balue is multiplied by this before being applied to each respective quadrant. Use this to concentrate armor in specific zones.
+	var/list/quadrant_distribution = list("forward port" = 1, "forward_starboard" = 1, "aft_port" = 1, "aft_starboard" = 1)
 	var/list/armour_quadrants = list("forward_port" = list(), "forward_starboard" = list(), "aft_port" = list(), "aft_starboard" = list()) //Our four quadrants
 	var/linked_apnw = null //Our linked APNW
 
@@ -394,10 +396,10 @@ Proc to spool up a new Z-level for a player ship and assign it a treadmill.
 		use_armour_quadrants = TRUE
 		//AI ships get weaker armour to allow you to kill them more easily.
 		var/armour_efficiency = (role > NORMAL_OVERMAP) ? obj_integrity / 2 : obj_integrity / 4
-		armour_quadrants = list("forward_port" = list("name" = "Forward Port", "max_armour" = armour_efficiency, "current_armour" = armour_efficiency),\
-							"forward_starboard" = list("name" = "Forward Starboard", "max_armour" = armour_efficiency, "current_armour" = armour_efficiency),\
-							"aft_port" = list("name" = "Aft Port", "max_armour" = armour_efficiency, "current_armour" = armour_efficiency),\
-							"aft_starboard" = list("name" = "Aft Starboard", "max_armour" = armour_efficiency, "current_armour" = armour_efficiency))
+		armour_quadrants = list("forward_port" = list("name" = "Forward Port", "max_armour" = round(quadrant_distribution["forward_port"] * armour_efficiency), "current_armour" = round(quadrant_distribution["forward_port"] * armour_efficiency)),\
+							"forward_starboard" = list("name" = "Forward Starboard", "max_armour" = round(quadrant_distribution["forward_starboard"] * armour_efficiency), "current_armour" = round(quadrant_distribution["forward_starboard"] * armour_efficiency)),\
+							"aft_port" = list("name" = "Aft Port", "max_armour" = round(quadrant_distribution["aft_port"] * armour_efficiency), "current_armour" = round(quadrant_distribution["aft_port"] * armour_efficiency)),\
+							"aft_starboard" = list("name" = "Aft Starboard", "max_armour" = round(quadrant_distribution["aft_starboard"] * armour_efficiency), "current_armour" = round(quadrant_distribution["aft_starboard"] * armour_efficiency)))
 	switch(mass) //Scale speed with mass (tonnage)
 		if(MASS_TINY) //Tiny ships are manned by people, so they need air.
 			forward_maxthrust = 2
